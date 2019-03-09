@@ -1,0 +1,75 @@
+#pragma once
+#if defined(_WIN32) || defined(_WIN64)
+
+#include <vector>
+#include <cstdint>
+#include <memory>
+
+namespace helpers {
+
+class NativeSystemInformation;
+class PhysicalMemory;
+
+/// @brief SMBIOS header+table beginning
+struct RawSMBIOSData {
+    uint8_t calling_method;
+    uint8_t major_version;
+    uint8_t minor_version;
+    uint8_t dmi_revision;
+    uint32_t length;
+    uint8_t smbios_table_data[1];
+};
+
+/// @brief Class that owns memory allocated for SMBIOS table, offsets for table beginning
+/// (without header) and table size
+class SMBiosImpl
+{
+public:
+
+    /// @brief Read the SMBIOS table using GetSystemFirmwareTable() 
+    SMBiosImpl();
+
+    /// @brief Make compiler happy
+    ~SMBiosImpl();
+
+    /// @brief System-specific SMBIOS source was successful
+    bool smbios_read_success() const;
+
+    /// @brief Cast allocated memory to SMBIOS data (header and raw data)
+    RawSMBIOSData* get_formatted_smbios_table() const;
+
+    /// @brief Actual table base (offset from header beginning)
+    uint8_t* get_table_base()  const;
+    
+    /// @brief Actual table size from table beginning (without header)
+    size_t get_table_size()  const;
+
+    /// @brief Major version (from header)
+    size_t get_major_version() const;
+
+    /// @brief Minor version (from header)
+    size_t get_minor_version() const;
+
+    /// @brief Read from memory dump, it is intentionally left non-const to be moved
+    void read_from_physical_memory(std::vector<uint8_t>& physical_memory_dump, size_t length);
+
+private:
+
+    /// Find ntdll entry point
+    bool is_ntdll_compatible() const;
+
+    /// Implementation
+    void compose_native_smbios_table();
+
+    /// Save table with header here
+    std::vector<uint8_t> table_buffer_;
+
+    std::unique_ptr<helpers::NativeSystemInformation> native_system_information_;
+
+    /// Apply to the table with header
+    RawSMBIOSData* smbios_data_ = nullptr;
+};
+
+} // namespace helpers
+
+#endif // defined(_WIN32) || defined(_WIN64)
