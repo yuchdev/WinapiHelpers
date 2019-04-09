@@ -4,6 +4,8 @@
 #include <winapi_helpers/win_handle_ptr.h>
 
 #include <tlhelp32.h>
+#include <stdexcept>
+#include <system_error>
 
 using namespace std;
 using namespace helpers;
@@ -25,7 +27,8 @@ public:
     {
 
 		if (NULL == _scm_handle){
-			throw_formatted("OpenSCManager failed with GetLastError = ", GetLastError());
+			throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
+                "OpenSCManager failed with GetLastError");
 		}
 	}
 
@@ -56,8 +59,7 @@ public:
     {
 
 		if (_service_handle == NULL){
-			throw_formatted("OpenService failed with GetLastError = ", GetLastError());
-			return;
+            throw std::system_error(std::error_code(GetLastError(), std::system_category()), "OpenServiceA failed");
 		}
 	}
 
@@ -91,7 +93,7 @@ bool NativeServiceHelper::is_admin_access()
         return false;
     }
     else if (service_handle == NULL){
-        throw_formatted("is_scm_admin_access: OpenService failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()), "is_scm_admin_access: OpenService failed");
     }
     CloseServiceHandle(service_handle);
     return true;
@@ -110,7 +112,8 @@ bool NativeServiceHelper::is_service_registered(const string& service_name)
 		return false;
 	}
 	else if (service_handle == NULL){
-		throw_formatted("is_service_registered: OpenService failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "is_service_registered: OpenService failed");
 	}
 	return true;
 }
@@ -142,7 +145,8 @@ bool NativeServiceHelper::is_service_running(const string& service_name)
 		// size needed if buffer is too small
 		&size_for_buffer)){
 
-		throw_formatted("is_service_running: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
+            "is_service_running: QueryServiceStatusEx failed");
 	}
 
 	// Check if the service is already running
@@ -180,7 +184,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 		// size needed if buffer is too small
 		&size_for_buffer)){
 
-		throw_formatted("run_service: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
+            "run_service: QueryServiceStatusEx failed ");
 		return;
 	}
 
@@ -188,8 +193,7 @@ void NativeServiceHelper::run_service(const string& service_name)
 	// to stop the service here, but for simplicity this example just returns. 
 
 	if (service_status.dwCurrentState != SERVICE_STOPPED && service_status.dwCurrentState != SERVICE_STOP_PENDING) {
-
-		throw_formatted("run_service: Cannot start the service because it is already running");
+		// run_service: Cannot start the service because it is already running
 		return;
 	}
 
@@ -223,7 +227,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS), // size of structure
 			&size_for_buffer)){              // size needed if buffer is too small
 
-			throw_formatted("run_service: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+            throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
+                "run_service: QueryServiceStatusEx failed");
 			return;
 		}
 
@@ -236,7 +241,7 @@ void NativeServiceHelper::run_service(const string& service_name)
 		else{
 
 			if (GetTickCount() - start_tick_count > service_status.dwWaitHint){
-				throw_formatted("run_service: Timeout waiting for service to stop");
+				// run_service: Timeout waiting for service to stop
 				return;
 			}
 		}
@@ -252,7 +257,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 		// no arguments 
 		NULL)){
 
-		throw_formatted("run_service: StartService failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
+            "run_service: StartService failed");
 		return;
 	}
 
@@ -265,7 +271,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 		sizeof(SERVICE_STATUS_PROCESS), // size of structure
 		&size_for_buffer)){               // if buffer too small
 
-		throw_formatted("run_service: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "run_service: QueryServiceStatusEx failed");
 		return;
 	}
 
@@ -298,7 +305,9 @@ void NativeServiceHelper::run_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS), // size of structure
 			&size_for_buffer)){              // if buffer too small
 
-			throw_formatted("run_service: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+                "run_service: QueryServiceStatusEx failed");
+
 			break;
 		}
 
@@ -330,7 +339,7 @@ void NativeServiceHelper::run_service(const string& service_name)
 			<< "  Exit Code: " << service_status.dwWin32ExitCode << '\n'
 			<< "  Check Point: " << service_status.dwCheckPoint << '\n'
 			<< "  Wait Hint: " << service_status.dwWaitHint;
-		throw_formatted(ss.str());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()), ss.str().c_str());
 	}
 }
 
@@ -356,13 +365,14 @@ void NativeServiceHelper::stop_service(const string& service_name)
 		sizeof(SERVICE_STATUS_PROCESS),
 		&size_for_buffer)){
 
-		throw_formatted("stop_service: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "stop_service: QueryServiceStatusEx failed with");
 		return;
 	}
 
 	if (service_status_process.dwCurrentState == SERVICE_STOPPED)
 	{
-		throw_formatted("stop_service: Service is already stopped");
+		// Service is already stopped
 		return;
 	}
 
@@ -392,7 +402,8 @@ void NativeServiceHelper::stop_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS),
 			&size_for_buffer)){
 
-			throw_formatted("stop_service: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+                "stop_service: QueryServiceStatusEx failed");
 			return;
 		}
 
@@ -401,7 +412,7 @@ void NativeServiceHelper::stop_service(const string& service_name)
 		}
 
 		if (GetTickCount() - start_time > service_timeout) {
-			throw_formatted("stop_service: Service stop timed out");
+			// Service stop timed out
 			return;
 		}
 	}
@@ -416,7 +427,8 @@ void NativeServiceHelper::stop_service(const string& service_name)
 		SERVICE_CONTROL_STOP,
 		(LPSERVICE_STATUS)&service_status_process)){
 
-		throw_formatted("stop_service: ControlService failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "stop_service: ControlService failed");
 		return;
 	}
 
@@ -432,7 +444,8 @@ void NativeServiceHelper::stop_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS),
 			&size_for_buffer)) {
 
-			throw_formatted("stop_service: QueryServiceStatusEx failed with GetLastError = ", GetLastError());
+            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+                "stop_service: QueryServiceStatusEx failed");
 			return;
 		}
 
@@ -440,7 +453,7 @@ void NativeServiceHelper::stop_service(const string& service_name)
 			break;
 
 		if (GetTickCount() - start_time > service_timeout){
-			throw_formatted("Wait timed out");
+			// Wait timed out
 			return;
 		}
 	}
@@ -454,7 +467,8 @@ void NativeServiceHelper::register_service(const std::string& service_name,
 {
 	char service_binary[MAX_PATH] = {};
 	if (!GetModuleFileNameA(NULL, service_binary, MAX_PATH)) {
-		throw_formatted("Cannot install service with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "Cannot install service");
 		return;
 	}
 
@@ -483,7 +497,8 @@ void NativeServiceHelper::register_service(const std::string& service_name,
 		NULL);                     // no password 
 
 	if (schService == NULL) {
-		throw_formatted("register_service: CreateService failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "register_service: CreateService failed");
 		return;
 	}
 
@@ -506,13 +521,15 @@ VOID WINAPI NativeServiceHelper::delete_service(const string& service_name)
 		DELETE);               // need delete access 
 
 	if (service_handle == NULL){
-		throw_formatted("delete_service: OpenService failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "delete_service: OpenService failed");
 		return;
 	}
 
 	// Delete the service.
 	if (!DeleteService(service_handle)){
-		throw_formatted("delete_service: DeleteService failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "delete_service: DeleteService failed");
 	}
 
 	CloseServiceHandle(service_handle);
@@ -530,7 +547,8 @@ void NativeServiceHelper::set_service_description(const std::string& service_nam
     system_service_description.lpDescription = const_cast<LPSTR>(service_description.c_str());
 
     if (!ChangeServiceConfig2A(serv.handle(), SERVICE_CONFIG_DESCRIPTION, &system_service_description)) {
-        throw_formatted("set_service_description: ChangeServiceConfig2 failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "set_service_description: ChangeServiceConfig2 failed");
     }
 }
 
@@ -559,7 +577,8 @@ void NativeServiceHelper::set_service_restore_action(const std::string& service_
     failuse_actions.lpsaActions = sequence_of_actions;
 
     if (!ChangeServiceConfig2(serv.handle(), SERVICE_CONFIG_FAILURE_ACTIONS, &failuse_actions)) {
-        throw_formatted("set_service_restore_action: ChangeServiceConfig2 failed with GetLastError = ", GetLastError());
+        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+            "set_service_restore_action: ChangeServiceConfig2 failed");
     }
 }
 

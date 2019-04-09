@@ -17,7 +17,8 @@ public:
     explicit WinLocalPtr(size_t sz) : _local_mem(reinterpret_cast<T*>(LocalAlloc(LPTR, sz)))
     {
         if (_local_mem == NULL) {
-            throw_formatted("Unable to allocate on WindowsHeap with LocalAlloc");
+            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+                "Unable to allocate on WindowsHeap with LocalAlloc");
         }
     }
 
@@ -116,7 +117,8 @@ public:
     explicit WinHeapPtr(size_t s) : _raw_mem(reinterpret_cast<T*>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, s))){
         if (_raw_mem == NULL) 
         {
-            throw_formatted("Unable to allocate Windows heap");
+            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
+                "Unable to allocate Windows heap");
         }
     }
 

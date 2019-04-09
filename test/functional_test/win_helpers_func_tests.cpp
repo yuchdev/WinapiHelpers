@@ -1,6 +1,5 @@
 #include <string>
 #include <algorithm>
-#include <winapi_helpers/registry_manager.h>
 #include <winapi_helpers/win_special_path_helper.h>
 #include <winapi_helpers/win_ptrs.h>
 #include <winapi_helpers/win_errors.h>
@@ -40,51 +39,6 @@ BOOST_AUTO_TEST_CASE(Windows_Registry_Utils)
 }
 #endif
 
-/// Testing formatted exceptions
-BOOST_AUTO_TEST_CASE(TestExceptUtils)
-{
-    setlocale(0, "");
-
-    // Test 1 param exception
-    try {
-        throw_formatted("Param 1");
-    }
-    catch (const std::runtime_error& e){
-        std::string s1(e.what());
-        std::string s2("Param 1");
-        BOOST_CHECK_EQUAL(s1, s2);
-    }
-
-    // Test 2 param exception
-    try {
-        throw_formatted("Param 1 ", "Param 2");
-    }
-    catch (const std::runtime_error& e){
-        std::string s1(e.what());
-        std::string s2("Param 1 Param 2");
-        BOOST_CHECK_EQUAL(s1, s2);
-    }
-
-    // Test 3 param exception
-    try {
-        throw_formatted("Param 1 ", "Param 2 ", "Param 3");
-    }
-    catch (const std::runtime_error& e){
-        std::string s1(e.what());
-        std::string s2("Param 1 Param 2 Param 3");
-        BOOST_CHECK_EQUAL(s1, s2);
-    }
-
-    // Test 4 param exception
-    try {
-        throw_formatted("Param 1 ", "Param 2 ", "Param 3 ", "Param 4");
-    }
-    catch (const std::runtime_error& e){
-        std::string s1(e.what());
-        std::string s2("Param 1 Param 2 Param 3 Param 4");
-        BOOST_CHECK_EQUAL(s1, s2);
-    }
-}
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -280,20 +234,30 @@ BOOST_AUTO_TEST_CASE(OpenRegistryKeyTest)
 
         {
             helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management");
-            unsigned long val = key.get_dword_value("ClearPageFileAtShutdown");
+            auto ret = key.get_dword_value("ClearPageFileAtShutdown");;
+            unsigned long val = ret.first;
+            unsigned long rc = ret.second;
             BOOST_CHECK_LE(val, 1);
+            BOOST_CHECK_LE(rc, true);
         }
 
         {
             helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control");
-            std::string val = key.get_string_value("CurrentUser");
+            auto ret = key.get_string_value("CurrentUser");
+            std::string val = ret.first;
+            bool rc = ret.second;
             BOOST_CHECK_EQUAL(val.empty(), false);
+            BOOST_CHECK_LE(rc, true);
+
         }
 
         {
             helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control");
-            std::wstring val = key.get_wstring_value("CurrentUser");
+            auto ret = key.get_wstring_value("CurrentUser");
+            std::wstring val = ret.first;
+            bool rc = ret.second;
             BOOST_CHECK_EQUAL(val.empty(), false);
+            BOOST_CHECK_LE(rc, true);
         }
 
     }
@@ -559,16 +523,6 @@ BOOST_AUTO_TEST_SUITE_END()
 #pragma region RegistryManagerFunctionalTests
 
 BOOST_AUTO_TEST_SUITE(RegistryHelperFunctionalTests);
-
-BOOST_AUTO_TEST_CASE(RegistryManagerTest)
-{
-    bool ex = helpers::RegistryKey::is_key_exist(RegistryManager::system_all_browsers());
-    BOOST_CHECK_EQUAL(ex, true);
-    ex = helpers::RegistryKey::is_key_exist(RegistryManager::memory_management());
-    BOOST_CHECK_EQUAL(ex, true);
-    ex = helpers::RegistryKey::is_key_exist(RegistryManager::machine_power());
-    BOOST_CHECK_EQUAL(ex, true);
-}
 
 BOOST_AUTO_TEST_SUITE_END()
 

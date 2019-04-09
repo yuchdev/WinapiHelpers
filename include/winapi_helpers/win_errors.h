@@ -56,6 +56,16 @@ class WinErrorChecker{
 public:
 
 
+    // @brief Transform Windows error code to bool without throwing an exception
+    // NOTE! Suits for WinAPI functions that return success code
+    // @return true if success, false otherwise
+    static bool retbool_nothrow_retcode(DWORD error_message_ID)
+    {
+        //Get the error message, if any
+        bool ret = (error_message_ID == ERROR_SUCCESS) ? true : false;
+        return ret;
+    }
+
     // @brief Transform Windows error code to string without throwing an exception
     // NOTE! Suits for WinAPI functions that return success code
     // @return String description of Windows last error
@@ -85,6 +95,16 @@ public:
             throw std::runtime_error(format_error_message(error_message_ID));
 #endif
         }
+    }
+
+    // @brief Transform Windows error code to bool without throwing an exception
+    // NOTE! Suits for WinAPI functions that return success code
+    // @return true if success, false otherwise
+    static bool retbool_nothrow_boolean(BOOL return_code)
+    {
+        //Get the error message, if any
+        bool ret = (return_code) ? true : false;
+        return ret;
     }
 
     // @brief Transform Windows error code to string without throwing an exception

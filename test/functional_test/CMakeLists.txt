@@ -2,13 +2,13 @@ set(TARGET winapi_helpers_functional_test)
 
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS unit_test_framework date_time REQUIRED) 
 
-set(DEPENDENT_LIBRARIES teamcity_boost winapi_helpers)
+set(DEPENDENT_LIBRARIES winapi_helpers)
 
 file(GLOB SOURCES *.cpp)
  
 include_directories(
     ${Boost_INCLUDE_DIRS}
-    ${CMAKE_SOURCE_DIR}/winapi_helpers/include)
+    ${CMAKE_SOURCE_DIR}/include)
 
 add_executable(${TARGET} ${SOURCES})
 add_dependencies(${TARGET} ${DEPENDENT_LIBRARIES})

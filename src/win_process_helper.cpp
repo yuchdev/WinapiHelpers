@@ -1,6 +1,7 @@
 #include <winapi_helpers/win_process_helper.h>
 #include <winapi_helpers/win_errors.h>
 #include <winapi_helpers/win_handle_ptr.h>
+#include <winapi_helpers/win_handle_ptr.h>
 #include <Windows.h>
 #include <process.h>
 #include <Tlhelp32.h>
@@ -8,17 +9,14 @@
 
 using namespace std;
 using namespace helpers;
-using namespace logging::trivial;
 
 
-void NativeProcessHelper::execute(const char* executable, bool exec_async /*= false*/)
+bool NativeProcessHelper::execute(const char* executable, bool exec_async /*= false*/)
 {
     PROCESS_INFORMATION pi = {};
     STARTUPINFOA si = {};
 
-    LOG_DEBUG << "Executing process (ANSI): " << executable;
-
-    std::string return_message = WinErrorChecker::last_error_nothrow_boolean(CreateProcessA(
+    BOOL rc = CreateProcessA(
         NULL,
         const_cast<LPSTR>(executable),
         NULL,	// lpProcessAttributes
@@ -28,35 +26,33 @@ void NativeProcessHelper::execute(const char* executable, bool exec_async /*= fa
         NULL,	// lpEnvironment
         NULL,	// lpCurrentDirectory
         &si,	// LPSTARTUPINFO
-        &pi));	// LPPROCESS_INFORMATION
+        &pi);	// LPPROCESS_INFORMATION
 
-    if (!return_message.empty()) {
-        LOG_WARN << "ANSI execute returned: " << return_message;
+    if (!rc) {
+        return false;
     }
 
     if (!exec_async) {
         DWORD timeout = 5000;
-        LOG_DEBUG << "Waiting for the process PID = " << pi.hProcess << " to complete";
-        
         DWORD completion_code = WaitForSingleObject(pi.hProcess, timeout);
         if (WAIT_TIMEOUT == completion_code) {
-            LOG_WARN << "Exiting by timeout, unable to complete in " << timeout << " msec";
+            // Exiting by timeout, unable to complete
+            return false;
         }
         else if (WAIT_FAILED == completion_code) {
-            DWORD e = ::GetLastError();
-            LOG_WARN << "Waiting was abandoned with the error code = " << e;
+            // Waiting was abandoned with the error
+            return false;
         }
     }
+    return true;
 }
 
-void NativeProcessHelper::execute(const wchar_t* executable, bool exec_async /*= false*/)
+bool NativeProcessHelper::execute(const wchar_t* executable, bool exec_async /*= false*/)
 {
     PROCESS_INFORMATION pi = {};
     STARTUPINFOW si = {};
 
-    LOG_DEBUG << "Executing process (Unicode): " << helpers::wstring_to_string(std::wstring(executable));
-
-    std::string return_message = WinErrorChecker::last_error_nothrow_boolean(CreateProcessW(
+    BOOL rc = CreateProcessW(
         NULL,
         const_cast<LPWSTR>(executable),
         NULL,	// lpProcessAttributes
@@ -66,25 +62,25 @@ void NativeProcessHelper::execute(const wchar_t* executable, bool exec_async /*=
         NULL,	// lpEnvironment
         NULL,	// lpCurrentDirectory
         &si,	// LPSTARTUPINFO
-        &pi));	// LPPROCESS_INFORMATION
+        &pi);	// LPPROCESS_INFORMATION
 
-    if (!return_message.empty()) {
-        LOG_WARN << "Wide execute returned: " << return_message;
+    if (!rc) {
+        return false;
     }
 
     if (!exec_async) {
         DWORD timeout = 5000;
-        LOG_DEBUG << "Waiting for the process PID = " << pi.hProcess << " to complete";
-
         DWORD completion_code = WaitForSingleObject(pi.hProcess, timeout);
         if (WAIT_TIMEOUT == completion_code) {
-            LOG_WARN << "Exiting by timeout, unable to complete in " << timeout << " msec";
+            // Exiting by timeout, unable to complete
+            return false;
         }
         else if (WAIT_FAILED == completion_code) {
-            DWORD e = ::GetLastError();
-            LOG_WARN << "Waiting was abandoned with the error code = " << e;
+            // Waiting was abandoned with the error
+            return false;
         }
     }
+    return true;
 }
 
 void NativeProcessHelper::pkill(const char* process_name)
@@ -170,8 +166,7 @@ bool NativeProcessHelper::elevate_to_admin_mode()
         }
         else {
             // Elevation system error
-            DWORD e = ::GetLastError();
-            LOG_WARN << "Elevating was abandoned with the error code = " << e;
+            return false;
         }
     }
     return true;

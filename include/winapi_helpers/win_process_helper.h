@@ -12,10 +12,12 @@ class NativeProcessHelper{
 public:
 
     /// @brief Execute process (ANSI)
-    static void execute(const char* executable, bool exec_async = false);
+    /// @return: true if success, false otherwise
+    static bool execute(const char* executable, bool exec_async = false);
 
     /// @brief Execute process (Unicode)
-    static void execute(const wchar_t* executable, bool exec_async = false);
+    /// @return: true if success, false otherwise
+    static bool execute(const wchar_t* executable, bool exec_async = false);
 
     /// @brief Kill processes by name
     static void pkill(const char* process_name);
