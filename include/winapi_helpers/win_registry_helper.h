@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-//#include <fstream>
 
 // Place here WinRegistry-related functions and classes
 

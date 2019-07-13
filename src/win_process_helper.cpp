@@ -16,7 +16,9 @@ bool NativeProcessHelper::execute(const char* executable, bool exec_async /*= fa
     PROCESS_INFORMATION pi = {};
     STARTUPINFOA si = {};
 
-    BOOL rc = CreateProcessA(
+    LOG_DEBUG << "Executing process (ANSI): " << executable;
+
+    std::string return_message = WinErrorChecker::last_error_nothrow_boolean(CreateProcessA(
         NULL,
         const_cast<LPSTR>(executable),
         NULL,	// lpProcessAttributes
@@ -26,21 +28,24 @@ bool NativeProcessHelper::execute(const char* executable, bool exec_async /*= fa
         NULL,	// lpEnvironment
         NULL,	// lpCurrentDirectory
         &si,	// LPSTARTUPINFO
-        &pi);	// LPPROCESS_INFORMATION
+        &pi));	// LPPROCESS_INFORMATION
 
-    if (!rc) {
-        return false;
+    if (!return_message.empty()) {
+        LOG_WARN << "ANSI execute returned: " << return_message;
     }
 
     if (!exec_async) {
         DWORD timeout = 5000;
+        LOG_DEBUG << "Waiting for the process PID = " << pi.hProcess << " to complete";
+        
         DWORD completion_code = WaitForSingleObject(pi.hProcess, timeout);
         if (WAIT_TIMEOUT == completion_code) {
-            // Exiting by timeout, unable to complete
+            LOG_WARN << "Exiting by timeout, unable to complete in " << timeout << " msec";
             return false;
         }
         else if (WAIT_FAILED == completion_code) {
-            // Waiting was abandoned with the error
+            DWORD e = ::GetLastError();
+            LOG_WARN << "Waiting was abandoned with the error code = " << e;
             return false;
         }
     }
@@ -52,7 +57,9 @@ bool NativeProcessHelper::execute(const wchar_t* executable, bool exec_async /*=
     PROCESS_INFORMATION pi = {};
     STARTUPINFOW si = {};
 
-    BOOL rc = CreateProcessW(
+    LOG_DEBUG << "Executing process (Unicode): " << helpers::wstring_to_string(std::wstring(executable));
+
+    std::string return_message = WinErrorChecker::last_error_nothrow_boolean(CreateProcessW(
         NULL,
         const_cast<LPWSTR>(executable),
         NULL,	// lpProcessAttributes
@@ -62,21 +69,24 @@ bool NativeProcessHelper::execute(const wchar_t* executable, bool exec_async /*=
         NULL,	// lpEnvironment
         NULL,	// lpCurrentDirectory
         &si,	// LPSTARTUPINFO
-        &pi);	// LPPROCESS_INFORMATION
+        &pi));	// LPPROCESS_INFORMATION
 
-    if (!rc) {
-        return false;
+    if (!return_message.empty()) {
+        LOG_WARN << "Wide execute returned: " << return_message;
     }
 
     if (!exec_async) {
         DWORD timeout = 5000;
+        LOG_DEBUG << "Waiting for the process PID = " << pi.hProcess << " to complete";
+
         DWORD completion_code = WaitForSingleObject(pi.hProcess, timeout);
         if (WAIT_TIMEOUT == completion_code) {
-            // Exiting by timeout, unable to complete
+            LOG_WARN << "Exiting by timeout, unable to complete in " << timeout << " msec";
             return false;
         }
         else if (WAIT_FAILED == completion_code) {
-            // Waiting was abandoned with the error
+            DWORD e = ::GetLastError();
+            LOG_WARN << "Waiting was abandoned with the error code = " << e;
             return false;
         }
     }
@@ -166,6 +176,8 @@ bool NativeProcessHelper::elevate_to_admin_mode()
         }
         else {
             // Elevation system error
+            DWORD e = ::GetLastError();
+            LOG_WARN << "Elevating was abandoned with the error code = " << e;
             return false;
         }
     }

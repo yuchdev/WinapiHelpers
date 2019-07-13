@@ -71,8 +71,9 @@ private:
 
     /// @brief Get special directory path
     /// @param special_path_type: macros type see in file "shlobj.h", e.g. CSIDL_APPDATA
+	/// @param ignoreSystemUserCheck: true to skip check for running under system user account(e.g. to get common app data path)
     /// return empty string if path does not exist
-    static std::wstring get_appdata_path(int special_path_type);
+    static std::wstring get_appdata_path(int special_path_type, bool ignoreSystemUserCheck = false);
 
     /// @brief Create Temp directory on the root disk
     static std::wstring create_root_tempdir();

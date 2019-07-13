@@ -1,15 +1,17 @@
 #if defined(_WIN32) || defined(_WIN64)	
+#include <win_helpers/win_partition_information.h>
+#include <win_helpers/win_errors.h>
+#include <helpers/utilities.h>
+
+#include <boost/thread/locks.hpp>
+#include <Windows.h>
+
 #include <cassert>
 #include <algorithm>
 #include <iterator>
 #include <mutex>
 #include <cctype>
 #include <set>
-
-#include <boost/thread/locks.hpp>
-#include <Windows.h>
-
-#include <winapi_helpers/win_partition_information.h>
 
 using namespace helpers;
 
@@ -28,7 +30,6 @@ NativePartititonInformation::NativePartititonInformation()
 {
     collect_partititon_information();
 }
-
 
 std::vector<NativePartititonInformation::NativePartititon> 
 NativePartititonInformation::enumerate_partititons() const
@@ -114,8 +115,8 @@ void NativePartititonInformation::collect_partititon_information()
 #else
 void NativePartititonInformation::collect_partititon_information()
 {
-    wchar_t disk_windows_pattern[] = L"X:\\";
-    wchar_t current_drive_letter = L'A';
+    char disk_windows_pattern[] = "X:\\";
+    char current_drive_letter = 'A';
     DWORD drive_mask = ::GetLogicalDrives();
     if (0 == drive_mask) {
         // just leave data empty
@@ -133,11 +134,22 @@ void NativePartititonInformation::collect_partititon_information()
 
             // compose correct windows drive root
             disk_windows_pattern[0] = current_drive_letter;
+            auto wdisk_windows_pattern = helpers::string_to_wstring(disk_windows_pattern);
 
             part_info.drive_letter = current_drive_letter;
-            part_info.placement_type = get_drive_placement(disk_windows_pattern);
+            part_info.placement_type = get_drive_placement(wdisk_windows_pattern);
             part_info.drive_index = get_physical_drive_number(current_drive_letter);
             part_info.disk_type = get_drive_type(part_info.drive_index);
+
+            std::string volume_name;
+            std::string volume_id;
+            std::string filesystem_name;
+            std::string last_error = get_volume_information(disk_windows_pattern, volume_name, volume_id, filesystem_name);
+            if (last_error.empty()) {
+                part_info.volume_name = volume_name;
+                part_info.volume_id = volume_id;
+                part_info.filesystem_name = filesystem_name;
+            }
 
             partititon_info_[current_drive_letter] = part_info;
             
@@ -272,6 +284,62 @@ const std::vector<int> NativePartititonInformation::get_physical_drives() const
     }
     return std::move(std::vector<int>{drive_indexes.begin(), drive_indexes.end()});
 }
+
+std::string NativePartititonInformation::get_system_drive()
+{
+    static const char* drive_regex_str = R"(^[a-zA-Z]:\\$)";
+    std::regex drive_regex(drive_regex_str);
+    std::string system_drive;
+
+    const char* system_drive_env = std::getenv("SystemDrive");
+    if (nullptr == system_drive_env) {
+        system_drive = "C:\\";
+    }
+    else {
+        system_drive = system_drive_env;
+        system_drive += '\\';
+    }
+
+    if (!std::regex_match(system_drive, drive_regex)) {
+        system_drive = "C:\\";
+    }
+    return std::move(system_drive);
+}
+
+std::string helpers::NativePartititonInformation::get_volume_information(const std::string& volume_index, 
+    std::string& volume_name_out, std::string& volume_id_out, std::string& filesystem_name_out)
+{
+    const size_t path_size = MAX_PATH + 1;
+    char volume_name_ret[path_size] = { 0 };
+    char filesystem_name_ret[path_size] = { 0 };
+    DWORD serial_number_ret = 0;
+    DWORD max_component_len = 0;
+    DWORD file_system_flags = 0;
+
+    std::string last_error = WinErrorChecker::last_error_nothrow_boolean(GetVolumeInformationA(
+        volume_index.c_str(),
+        volume_name_ret,
+        path_size,
+        &serial_number_ret,
+        &max_component_len,
+        &file_system_flags,
+        filesystem_name_ret,
+        path_size));
+
+    if (volume_name_ret) {
+        volume_name_out = volume_name_ret;
+    }
+
+    if (serial_number_ret) {
+        volume_id_out = std::to_string(static_cast<unsigned long>(serial_number_ret));
+    }
+
+    if (filesystem_name_ret) {
+        filesystem_name_out = filesystem_name_ret;
+    }
+    return last_error;
+}
+
 #endif
 
 #endif // defined(_WIN32) || defined(_WIN64)

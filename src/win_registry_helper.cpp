@@ -39,7 +39,7 @@ struct helpers::HKEY_holder {
     HKEY key;
 
     /// @brief get Windows-specific registry root handle by its string value
-    static HKEY get_root_key(const char* root_key) 
+    static HKEY get_root_key(const char* root_key)
     {
         auto it = key_values.find(root_key);
         if (key_values.end() != it) {
@@ -56,7 +56,7 @@ struct helpers::HKEY_holder {
 };
 
 std::map<std::string, HKEY> helpers::HKEY_holder::key_values = {
-    {"HKEY_CLASSES_ROOT", HKEY_CLASSES_ROOT },
+    { "HKEY_CLASSES_ROOT", HKEY_CLASSES_ROOT },
     { "HKEY_CURRENT_USER", HKEY_CURRENT_USER },
     { "HKEY_LOCAL_MACHINE", HKEY_LOCAL_MACHINE },
     { "HKEY_USERS", HKEY_USERS },
@@ -75,21 +75,21 @@ RegistryKey::RegistryKey(const std::string& key, bool read_only/* = false*/) : h
 {
     size_t root_ends = key.find_first_of('\\');
     std::string root_key(key.substr(0, root_ends));
-    std::string key_name(key.substr(root_ends+1));
+    std::string key_name(key.substr(root_ends + 1));
     HKEY root = HKEY_holder::get_root_key(root_key.c_str());
     REGSAM samDesired;
-    if (is_x32_application_on_x64()) 
+    if (is_x32_application_on_x64())
         samDesired = KEY_WOW64_64KEY;
-    else 
+    else
         samDesired = KEY_WOW64_32KEY;
     WinErrorChecker::last_error_throw_retcode(
-                RegOpenKeyExA(
-                    root,
-                    key_name.c_str(),
-                    0,
-                    (read_only ? (KEY_READ | samDesired)
-                               : (KEY_ALL_ACCESS | samDesired)),
-                    &hkey_->key));
+        RegOpenKeyExA(
+            root,
+            key_name.c_str(),
+            0,
+            (read_only ? (KEY_READ | samDesired)
+                : (KEY_ALL_ACCESS | samDesired)),
+            &hkey_->key));
 }
 
 RegistryKey::~RegistryKey()
@@ -144,9 +144,9 @@ bool RegistryKey::is_key_exist(const std::string& key)
     }
 
     REGSAM samDesired;
-    if (is_x32_application_on_x64()) 
+    if (is_x32_application_on_x64())
         samDesired = KEY_WOW64_64KEY;
-    else 
+    else
         samDesired = KEY_WOW64_32KEY;
 
     LONG ret_code = RegOpenKeyExA(root, key_name.c_str(), 0, KEY_ALL_ACCESS | samDesired, &holder);
@@ -175,7 +175,6 @@ bool RegistryKey::is_value_exist(const std::string& value_name) const
     if (ERROR_FILE_NOT_FOUND == ret_code) {
         return false;
     }
-//    throw_formatted(value_name, " is unable to open with error code ", ret_code);
     return false;
 }
 
@@ -276,8 +275,8 @@ bool RegistryKey::save_to_file(const std::string &file_path, const std::string& 
     }
 
     return WinErrorChecker::retbool_nothrow_retcode(RegSaveKeyA(hkey_->key,
-                   (file_path + key_name).data(),
-                   NULL));
+        (file_path + key_name).data(),
+        NULL));
 }
 
 std::pair<unsigned long, bool> RegistryKey::get_dword_value(const std::string& key) const
@@ -326,7 +325,7 @@ std::pair<std::string, bool> RegistryKey::get_string_value(const std::string& ke
 std::pair<std::string, bool> RegistryKey::get_binary_value(const string &key) const
 {
     std::pair<std::string, bool> result = std::make_pair(std::string{}, true);
-    char buffer[4096] = { };
+    char buffer[4096] = {};
     DWORD value_type = REG_BINARY;
     DWORD ret_buffer_size = sizeof(buffer);
     result.second = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
@@ -349,8 +348,8 @@ std::pair<std::wstring, bool> RegistryKey::get_wstring_value(const std::string& 
     std::pair<std::wstring, bool> result = std::make_pair(std::wstring{}, true);
     auto ret = get_string_value(key);
     result.second = ret.second;
-    
-    if(result.second)
+
+    if (result.second)
         result.first = to_wstring(ret.first);
 
     return result;
@@ -477,9 +476,9 @@ bool RegistryKey::enable_backup_privilege() const
 {
     HANDLE handle_token_ = NULL;
     if (!OpenProcessToken(
-                GetCurrentProcess(),
-                TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
-                &handle_token_)) {
+        GetCurrentProcess(),
+        TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+        &handle_token_)) {
         CloseHandle(handle_token_);
         return FALSE;
     }
@@ -506,18 +505,18 @@ bool RegistryKey::enable_restore_privilege() const
 {
     HANDLE handle_token_ = NULL;
     if (!OpenProcessToken(
-                GetCurrentProcess(),
-                TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
-                &handle_token_)) {
+        GetCurrentProcess(),
+        TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
+        &handle_token_)) {
         CloseHandle(handle_token_);
         return FALSE;
     }
 
     TOKEN_PRIVILEGES privileges_token_;
     if (!LookupPrivilegeValue(
-                NULL,
-                SE_RESTORE_NAME,
-                &privileges_token_.Privileges[0].Luid)) {
+        NULL,
+        SE_RESTORE_NAME,
+        &privileges_token_.Privileges[0].Luid)) {
         CloseHandle(handle_token_);
         return FALSE;
     }

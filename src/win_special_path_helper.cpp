@@ -50,10 +50,10 @@ std::wstring NativePathHelpers::get_home_path()
     return home_path;
 }
 
-std::wstring NativePathHelpers::get_appdata_path(int special_path_type)
+std::wstring NativePathHelpers::get_appdata_path(int special_path_type, bool ignoreSystemUserCheck)
 {
     // we do not interested about SYSTEM AppData
-    if (NativeServiceHelper::is_system_user()) {
+    if (NativeServiceHelper::is_system_user() && !ignoreSystemUserCheck) {
         return std::wstring{};
     }
 
@@ -82,7 +82,7 @@ std::wstring NativePathHelpers::get_roaming_appdata_path()
 
 std::wstring NativePathHelpers::get_common_appdata_path()
 {
-    return get_appdata_path(CSIDL_COMMON_APPDATA);
+    return get_appdata_path(CSIDL_COMMON_APPDATA, true);
 }
 
 std::wstring NativePathHelpers::create_root_tempdir()
