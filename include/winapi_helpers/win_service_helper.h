@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include <string>
 #include <sstream>
+#include <optional>
 
 // Place here Windows Service-related functions and classes
 
@@ -10,11 +11,12 @@ namespace helpers {
 
 
 /// @brief Set of Windows Service management options
+/// Class deliberately made exception-free to safely run in low-level code
 class NativeServiceHelper{
 public:
 
     /// @brief Check whether Windows Service Administrator access granted
-    static bool is_admin_access();
+    static std::optional<bool> is_admin_access();
 
     /// @brief Find out if a process is running as the SYSTEM user.
     static bool is_system_user();

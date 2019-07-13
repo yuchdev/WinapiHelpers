@@ -80,7 +80,7 @@ private:
 
 
 //static 
-bool NativeServiceHelper::is_admin_access()
+std::optional<bool> NativeServiceHelper::is_admin_access()
 {
 
     SC_HANDLE service_handle = OpenSCManager(NULL, // local computer
@@ -93,7 +93,8 @@ bool NativeServiceHelper::is_admin_access()
         return false;
     }
     else if (service_handle == NULL){
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()), "is_scm_admin_access: OpenService failed");
+        //throw std::system_error(std::error_code(GetLastError(), std::system_category()), "is_scm_admin_access: OpenService failed");
+        return {};
     }
     CloseServiceHandle(service_handle);
     return true;

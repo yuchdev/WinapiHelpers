@@ -1,7 +1,8 @@
 #if defined(_WIN32) || defined(_WIN64)	
-#include <win_helpers/win_partition_information.h>
-#include <win_helpers/win_errors.h>
-#include <helpers/utilities.h>
+#include <winapi_helpers/win_partition_information.h>
+#include <winapi_helpers/win_errors.h>
+#include <winapi_helpers/utilities.h>
+
 
 #include <boost/thread/locks.hpp>
 #include <Windows.h>
@@ -11,6 +12,7 @@
 #include <iterator>
 #include <mutex>
 #include <cctype>
+#include <regex>
 #include <set>
 
 using namespace helpers;

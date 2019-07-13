@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(winapi_helpers CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+
 set(BOOST_MIN_VERSION "1.61.0")
 set(Boost_ADDITIONAL_VERSIONS "1.61.0" "1.61")
 set(Boost_USE_STATIC_LIBS ON)
