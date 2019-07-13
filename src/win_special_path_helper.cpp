@@ -50,10 +50,10 @@ std::wstring NativePathHelpers::get_home_path()
     return home_path;
 }
 
-std::wstring NativePathHelpers::get_appdata_path(int special_path_type, bool ignoreSystemUserCheck)
+std::wstring NativePathHelpers::get_appdata_path(int special_path_type, bool ignore_system_user_check /*= false*/)
 {
     // we do not interested about SYSTEM AppData
-    if (NativeServiceHelper::is_system_user() && !ignoreSystemUserCheck) {
+    if (NativeServiceHelper::is_system_user() && !ignore_system_user_check) {
         return std::wstring{};
     }
 
