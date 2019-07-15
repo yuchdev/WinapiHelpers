@@ -108,11 +108,9 @@ std::optional<bool> helpers::RegistryKey::is_key_exist(const std::string& key)
     std::string root_key(key.substr(0, root_ends));
     std::string key_name(key.substr(root_ends + 1));
 
-    try {
-        root = HKEY_holder::get_root_key(root_key.c_str());
-    }
-    catch (const std::exception&) {
-        return false;
+    root = HKEY_holder::get_root_key(root_key.c_str());
+    if (root == nullptr) {
+        return {};
     }
 
     REGSAM samDesired;
@@ -147,7 +145,7 @@ std::optional<bool> helpers::RegistryKey::is_value_exist(const std::string& valu
     if (ERROR_FILE_NOT_FOUND == ret_code) {
         return false;
     }
-    return false;
+    return {};
 }
 
 
