@@ -87,61 +87,27 @@ BOOST_AUTO_TEST_CASE(TestHeapAllocPtr)
 // Get last error to string test
 BOOST_AUTO_TEST_CASE(TestWindowsErrorStringNothrow)
 {
-    std::string error_description;
-    DWORD errorMessageID{};
-    if (!GetProcessId(NULL))
-    {
-        // Retrieve the system error message for the last-error code
-
-        //Get the error message, if any
-        errorMessageID = ::GetLastError();
-
-        // Format Windows error message
-        LPSTR messageBuffer = nullptr;
-        size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, errorMessageID, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), reinterpret_cast<LPSTR>(&messageBuffer), 0, NULL);
-
-        // Display the error message and exit the process
-        error_description.assign(messageBuffer, size);
-        error_description.erase(std::remove(error_description.begin(), error_description.end(), '\r'), error_description.end());
-        error_description.erase(std::remove(error_description.begin(), error_description.end(), '\n'), error_description.end());
-        LocalFree(messageBuffer);
-    }
-    std::string last_error = WinErrorChecker::last_error_nothrow_retcode(errorMessageID);
-    BOOST_CHECK_EQUAL(error_description, last_error);
+    DWORD errorMessageID = ERROR_ACCESS_DENIED;
+    std::string error_description{ "Access is denied." };
+    bool ret = WinErrorChecker::retbool_nothrow_retcode(errorMessageID);
+    std::string msg = WinErrorChecker::last_error_nothrow_retcode(errorMessageID);
+    BOOST_CHECK_EQUAL(ret, false);
+    BOOST_CHECK_EQUAL(msg, error_description);
 }
 
 // Get last error to string test with exception being thrown
 BOOST_AUTO_TEST_CASE(TestWindowsErrorStringThrow)
 {
-    std::string error_description;
+    std::string error_description{ "Access is denied." };
     std::string last_error;
-    DWORD errorMessageID{};
+    DWORD errorMessageID = ERROR_ACCESS_DENIED;
     try{
-        if (!GetProcessId(NULL))
-        {
-            // Retrieve the system error message for the last-error code
-
-            //Get the error message, if any
-            errorMessageID = ::GetLastError();
-
-            // Format Windows error message
-            LPSTR messageBuffer = nullptr;
-            size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                NULL, errorMessageID, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), reinterpret_cast<LPSTR>(&messageBuffer), 0, NULL);
-
-            // Display the error message and exit the process
-            error_description.assign(messageBuffer, size);
-            error_description.erase(std::remove(error_description.begin(), error_description.end(), '\r'), error_description.end());
-            error_description.erase(std::remove(error_description.begin(), error_description.end(), '\n'), error_description.end());
-            LocalFree(messageBuffer);
-        }
         WinErrorChecker::last_error_throw_retcode(errorMessageID);
     }
     catch (const std::runtime_error& e){
         last_error = e.what();
     }
-    BOOST_CHECK_EQUAL(error_description, last_error);
+    BOOST_CHECK_EQUAL(last_error, error_description);
 }
 
 #endif
@@ -156,31 +122,33 @@ BOOST_AUTO_TEST_SUITE(ServiceManagerFunctionalTests);
 
 BOOST_AUTO_TEST_CASE(IsServiceRegisteredTest)
 {
-    try{
-        BOOST_CHECK_EQUAL(NativeServiceHelper::is_service_registered("Netlogon"), true);
+    std::optional<bool> registered = NativeServiceHelper::is_service_registered("Netlogon");
+    BOOST_CHECK_EQUAL(registered.has_value(), true);
+    if (!registered.has_value()) {
+        return;
     }
-    catch (const std::exception& e){
-        BOOST_CHECK_EQUAL(std::string(e.what()), "");
+    BOOST_CHECK_EQUAL(registered.value(), true);
+    
+
+    std::optional<bool> not_registered = NativeServiceHelper::is_service_registered("NoSuchService");
+    BOOST_CHECK_EQUAL(not_registered.has_value(), true);
+    if (!not_registered.has_value()) {
+        return;
     }
 
-    try{
-        BOOST_CHECK_EQUAL(NativeServiceHelper::is_service_registered("NoSuchService"), false);
-    }
-    catch (const std::exception& e){
-        BOOST_CHECK_EQUAL(std::string(e.what()), "");
-    }
-
+    BOOST_CHECK_EQUAL(not_registered.value(), false);
 }
 
 BOOST_AUTO_TEST_CASE(IsServiceRunningTest)
 {
-    try{
-        // most probably Windows service is running
-        BOOST_CHECK_EQUAL(NativeServiceHelper::is_service_running("Schedule"), true);
+    // most probably Windows service is running
+    std::optional<bool> running = NativeServiceHelper::is_service_running("Schedule");
+    BOOST_CHECK_EQUAL(running.has_value(), true);
+    if (!running.has_value()) {
+        return;
     }
-    catch (const std::exception& e){
-        BOOST_CHECK_EQUAL(std::string(e.what()), "");
-    }
+
+    BOOST_CHECK_EQUAL(running.value(), true);
 }
 
 BOOST_AUTO_TEST_CASE(RunServiceTest)
@@ -193,26 +161,11 @@ BOOST_AUTO_TEST_CASE(RunServiceTest)
     // Most useless service on a server, could be used for testing
     const char* service_name = "Audiosrv";
 
-    if (!NativeServiceHelper::is_service_registered(service_name)) {
-        return;
-    }
+    std::optional<bool> service_registered = NativeServiceHelper::is_service_registered(service_name);
+    BOOST_CHECK_EQUAL(service_registered.has_value(), true);
 
-    bool test_service_run = NativeServiceHelper::is_service_running(service_name);
-
-    try {
-        if (test_service_run) {
-            NativeServiceHelper::stop_service(service_name);
-            NativeServiceHelper::run_service(service_name);
-        }
-        else {
-            NativeServiceHelper::run_service(service_name);
-            NativeServiceHelper::stop_service(service_name);
-        }
-
-    }
-    catch (const std::exception& e) {
-        BOOST_CHECK_EQUAL(std::string(e.what()), "");
-    }
+    std::optional<bool> test_service_run = NativeServiceHelper::is_service_running(service_name);
+    BOOST_CHECK_EQUAL(test_service_run.has_value(), true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -230,39 +183,34 @@ BOOST_AUTO_TEST_CASE(OpenRegistryKeyTest)
         return;
     }
 
-    try {
-
-        {
-            helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management");
-            auto ret = key.get_dword_value("ClearPageFileAtShutdown");;
-            unsigned long val = ret.first;
-            unsigned long rc = ret.second;
-            BOOST_CHECK_LE(val, 1);
-            BOOST_CHECK_LE(rc, true);
+    {
+        helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management");
+        std::optional<unsigned long> ret = key.get_dword_value("ClearPageFileAtShutdown");;        
+        BOOST_CHECK_EQUAL(ret.has_value(), true);
+        if (!ret.has_value()) {
+            return;
         }
-
-        {
-            helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control");
-            auto ret = key.get_string_value("CurrentUser");
-            std::string val = ret.first;
-            bool rc = ret.second;
-            BOOST_CHECK_EQUAL(val.empty(), false);
-            BOOST_CHECK_LE(rc, true);
-
-        }
-
-        {
-            helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control");
-            auto ret = key.get_wstring_value("CurrentUser");
-            std::wstring val = ret.first;
-            bool rc = ret.second;
-            BOOST_CHECK_EQUAL(val.empty(), false);
-            BOOST_CHECK_LE(rc, true);
-        }
-
+        BOOST_CHECK_LE(ret.value(), 1);
     }
-    catch (const std::exception& e) {
-        BOOST_CHECK_EQUAL(std::string(e.what()), "");
+
+    {
+        helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control");
+        auto ret = key.get_string_value("CurrentUser");
+        BOOST_CHECK_EQUAL(ret.has_value(), true);
+        if (!ret.has_value()) {
+            return;
+        }
+        BOOST_CHECK_EQUAL(ret.value().empty(), false);
+    }
+
+    {
+        helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control");
+        auto ret = key.get_wstring_value("CurrentUser");
+        BOOST_CHECK_EQUAL(ret.has_value(), true);
+        if (!ret.has_value()) {
+            return;
+        }
+        BOOST_CHECK_EQUAL(ret.value().empty(), false);
     }
 }
 
@@ -281,7 +229,9 @@ BOOST_AUTO_TEST_CASE(EnumerateIEHistory)
     try {
         // we have at least one browser?
         helpers::RegistryKey key("HKEY_CURRENT_USER\\Software\\Microsoft\\Internet Explorer\\TypedURLs");
-        std::vector<std::string> subvalues = key.enumerate_values();
+        auto ret = key.enumerate_values();
+        BOOST_CHECK_EQUAL(ret.has_value(), true);
+        std::vector<std::string> subvalues = ret.value();
         
         // return: 1st - number of subkeys, 2nd - number of subvalues
         std::pair<DWORD, DWORD> enumerator = key.count_subvalues();
@@ -303,7 +253,9 @@ BOOST_AUTO_TEST_CASE(EnumerateRegistryKeyTest)
     try {
         // we have at least one browser?
         helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\StartMenuInternet");
-        std::vector<std::string> subkeys = key.enumerate_subkeys();
+        auto ret = key.enumerate_subkeys();
+        BOOST_CHECK_EQUAL(ret.has_value(), true);
+        std::vector<std::string> subkeys = ret.value();
 
         // return: 1st - number of subkeys, 2nd - number of subvalues
         std::pair<DWORD, DWORD> enumerator = key.count_subvalues();
@@ -317,7 +269,9 @@ BOOST_AUTO_TEST_CASE(EnumerateRegistryKeyTest)
     try {
         // browser by default
         helpers::RegistryKey key("HKEY_LOCAL_MACHINE\\SOFTWARE\\Clients\\StartMenuInternet");
-        std::vector<std::string> subkeys = key.enumerate_values();
+        auto ret = key.enumerate_values();
+        BOOST_CHECK_EQUAL(ret.has_value(), true);
+        std::vector<std::string> subkeys = ret.value();
         BOOST_CHECK_NE(subkeys.size(), 0);
     }
     catch (const std::exception& e) {
@@ -332,14 +286,9 @@ BOOST_AUTO_TEST_CASE(ExistentKeyTest)
         return;
     }
 
-    try {
-        bool ex = helpers::RegistryKey::is_key_exist(
-            "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management");
-        BOOST_CHECK_EQUAL(ex, true);
-    }
-    catch (const std::exception& e) {
-        BOOST_CHECK_EQUAL(std::string(e.what()), "");
-    }
+    auto ret = helpers::RegistryKey::is_key_exist("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management");
+    BOOST_CHECK_EQUAL(ret.has_value(), true);
+    BOOST_CHECK_EQUAL(ret.value(), true);
 }
 
 BOOST_AUTO_TEST_CASE(NonExistentKeyTest)
@@ -349,13 +298,9 @@ BOOST_AUTO_TEST_CASE(NonExistentKeyTest)
         return;
     }
 
-    try {
-        bool ex = helpers::RegistryKey::is_key_exist("HKEY_LOCAL_MACHINE\\SYSTEM\\Whooooaaa");
-        BOOST_CHECK_EQUAL(ex, false);
-    }
-    catch (const std::exception& e) {
-        BOOST_CHECK_EQUAL(std::string(e.what()), "");
-    }
+    auto ret = helpers::RegistryKey::is_key_exist("HKEY_LOCAL_MACHINE\\SYSTEM\\Whooooaaa");
+    BOOST_CHECK_EQUAL(ret.has_value(), true);
+    BOOST_CHECK_EQUAL(ret.value(), false);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

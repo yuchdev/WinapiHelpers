@@ -23,19 +23,23 @@ public:
 
     /// @brief Check whether Windows Service is registered
     /// @param service_name: Service name in SCM (not description!)
-    static bool is_service_registered(const std::string& service_name);
+    /// @return: optional{true} if service registered, optional{false} otherwise optional{} on error
+    static std::optional<bool> is_service_registered(const std::string& service_name);
 
     /// @brief Check whether Windows Service is running
     /// @param service_name: Service name in SCM (not description!)
-    static bool is_service_running(const std::string& service_name);
+    /// @return: optional{true} if service running, optional{false} otherwise optional{} on error
+    static std::optional<bool> is_service_running(const std::string& service_name);
 
     /// @brief Run Windows Service
     /// @param service_name: Service name in SCM (not description!)
-    static void run_service(const std::string& service_name);
+    /// @return: true if start successful, false otherwise
+    static bool start_service(const std::string& service_name);
 
     /// @brief Stop Windows Service
     /// @param service_name: Service name in SCM (not description!)
-    static void stop_service(const std::string& service_name);
+    /// @return: true if stop successful, false otherwise
+    static bool stop_service(const std::string& service_name);
 
     /// @brief Register Windows Service in Service Control Manager
     /// @param service_name: Service name in SCM (not description!)
@@ -43,19 +47,23 @@ public:
     /// @param account_name: The name of the account under which the service should run
     /// If the service type is SERVICE_WIN32_OWN_PROCESS, use an account name in the form "DomainName\UserName"
     /// Empty string equals "NT AUTHORITY\LocalService". For network access use "NT AUTHORITY\NetworkService"
-    static void register_service(const std::string& service_name, const std::string& display_name, const std::string& account_name);
+    /// @return: true if register successful, false otherwise
+    static bool register_service(const std::string& service_name, const std::string& display_name, const std::string& account_name);
 
     /// @brief Unregister Windows Service in Service Control Manager
     /// @param service_name: Service name in SCM (not description!)
-    static VOID WINAPI delete_service(const std::string& service_name);
+    /// @return: true if delete successful, false otherwise
+    static bool delete_service(const std::string& service_name);
 
     /// @brief Add description to Windows Service
     /// @param service_name: Service name in SCM
-    static void set_service_description(const std::string& service_name, const std::string& service_description);
+    /// @return: true if setting description successful, false otherwise
+    static bool set_service_description(const std::string& service_name, const std::string& service_description);
 
     /// @brief Make service restart after every failure
     /// @param service_name: Service name in SCM
-    static void set_service_restore_action(const std::string& service_name);
+    /// @return: true if setting action successful, false otherwise
+    static bool set_service_restore_action(const std::string& service_name);
 };
 
 } // namespace helpers

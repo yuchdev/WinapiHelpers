@@ -25,11 +25,6 @@ public:
 		// full access rights 
         desired_access))
     {
-
-		if (NULL == _scm_handle){
-			throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
-                "OpenSCManager failed with GetLastError");
-		}
 	}
 
     ~ScmManager()
@@ -45,6 +40,11 @@ public:
 		return _scm_handle;
 	}
 
+    bool valid() const
+    {
+        return _scm_handle != nullptr;
+    }
+
 private:
 	SC_HANDLE _scm_handle;
 };
@@ -57,10 +57,6 @@ public:
 	ServiceWrapper(const SC_HANDLE& scm, const string& service_name, DWORD desired_access) :
         _service_handle(OpenServiceA(scm, service_name.c_str(), desired_access))
     {
-
-		if (_service_handle == NULL){
-            throw std::system_error(std::error_code(GetLastError(), std::system_category()), "OpenServiceA failed");
-		}
 	}
 
     ~ServiceWrapper()
@@ -73,6 +69,11 @@ public:
     {
 		return _service_handle;
 	}
+
+    bool valid() const
+    {
+        return _service_handle != nullptr;
+    }
 
 private:
 	SC_HANDLE _service_handle;
@@ -93,41 +94,84 @@ std::optional<bool> NativeServiceHelper::is_admin_access()
         return false;
     }
     else if (service_handle == NULL){
-        //throw std::system_error(std::error_code(GetLastError(), std::system_category()), "is_scm_admin_access: OpenService failed");
+        // OpenService failed
         return {};
     }
     CloseServiceHandle(service_handle);
     return true;
 }
 
+bool NativeServiceHelper::is_system_user()
+{
+    UCHAR token_user_information[sizeof(TOKEN_USER) + 8 + (4 * SID_MAX_SUB_AUTHORITIES)] = {};
+    PTOKEN_USER user_information_ptr = reinterpret_cast<PTOKEN_USER>(token_user_information);
+    SID_IDENTIFIER_AUTHORITY sid_authority = SECURITY_NT_AUTHORITY;
+    bool is_system = false;
+
+    {
+        // open process token
+        helpers::WinHandlePtr process_token{};
+        if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, process_token.dereference_handle())) {
+            return false;
+        }
+
+        // retrieve user SID ()
+        ULONG token_info_size{};
+        if (!GetTokenInformation(process_token, TokenUser, user_information_ptr, sizeof(token_user_information), &token_info_size)) {
+            return false;
+        }
+    }
+
+    // allocate LocalSystem well-known SID (has only 1 sub-authority, 7 others possible are set to 0)
+    PSID system_user_sid = {};
+    if (!AllocateAndInitializeSid(&sid_authority, 1, SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, &system_user_sid)) {
+        return false;
+    }
+
+    // compare the user SID from the token with the LocalSystem SID
+    is_system = EqualSid(user_information_ptr->User.Sid, system_user_sid);
+    FreeSid(system_user_sid);
+
+    return is_system;
+}
+
 
 //static 
-bool NativeServiceHelper::is_service_registered(const string& service_name)
+std::optional<bool> NativeServiceHelper::is_service_registered(const std::string& service_name)
 {
 	// Get a handle to the SCM database. 
     ScmManager scm(GENERIC_READ | SC_MANAGER_ENUMERATE_SERVICE);
+    if (!scm.valid()) {
+        return {};
+    }
 
     SC_HANDLE service_handle = OpenServiceA(scm.handle(), service_name.c_str(), SERVICE_QUERY_STATUS);
 
 	if ((service_handle == NULL) && (ERROR_SERVICE_DOES_NOT_EXIST == GetLastError())){
 		return false;
 	}
-	else if (service_handle == NULL){
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "is_service_registered: OpenService failed");
-	}
+    else if (service_handle == NULL) {
+        // OpenService failed
+        return false;
+    };
 	return true;
 }
 
 //static 
-bool NativeServiceHelper::is_service_running(const string& service_name)
+std::optional<bool> NativeServiceHelper::is_service_running(const std::string& service_name)
 {
 
-	// Get a handle to the SCM database. 
+	// Get a handle to the SCM database
     ScmManager scm(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
+    if (!scm.valid()) {
+        return {};
+    }
 
 	// Get a handle to the service.
     ServiceWrapper serv(scm.handle(), service_name, SERVICE_QUERY_STATUS);
+    if (!serv.valid()) {
+        return {};
+    }
 
 	// Check the status in case the service is not stopped. 
 	DWORD size_for_buffer = 0;
@@ -146,8 +190,7 @@ bool NativeServiceHelper::is_service_running(const string& service_name)
 		// size needed if buffer is too small
 		&size_for_buffer)){
 
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
-            "is_service_running: QueryServiceStatusEx failed");
+        return {};
 	}
 
 	// Check if the service is already running
@@ -159,14 +202,19 @@ bool NativeServiceHelper::is_service_running(const string& service_name)
 
 
 //static 
-void NativeServiceHelper::run_service(const string& service_name)
+bool NativeServiceHelper::start_service(const std::string& service_name)
 {
-
-	// Get a handle to the SCM database. 
+	// Get a handle to the SCM database
     ScmManager scm(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
+    if (!scm.valid()) {
+        return false;
+    }
 
 	// Get a handle to the service.
     ServiceWrapper serv(scm.handle(), service_name, SERVICE_QUERY_STATUS | SERVICE_START);
+    if (!serv.valid()) {
+        return false;
+    }
 
 	DWORD size_for_buffer = 0;
 	SERVICE_STATUS_PROCESS service_status = {};
@@ -185,9 +233,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 		// size needed if buffer is too small
 		&size_for_buffer)){
 
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
-            "run_service: QueryServiceStatusEx failed ");
-		return;
+        // QueryServiceStatusEx failed
+        return false;
 	}
 
 	// Check if the service is already running. It would be possible 
@@ -195,7 +242,7 @@ void NativeServiceHelper::run_service(const string& service_name)
 
 	if (service_status.dwCurrentState != SERVICE_STOPPED && service_status.dwCurrentState != SERVICE_STOP_PENDING) {
 		// run_service: Cannot start the service because it is already running
-		return;
+		return true;
 	}
 
 	// Save the tick count and initial checkpoint.
@@ -228,9 +275,7 @@ void NativeServiceHelper::run_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS), // size of structure
 			&size_for_buffer)){              // size needed if buffer is too small
 
-            throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
-                "run_service: QueryServiceStatusEx failed");
-			return;
+            return false;
 		}
 
 		if (service_status.dwCheckPoint > old_check_point){
@@ -243,13 +288,12 @@ void NativeServiceHelper::run_service(const string& service_name)
 
 			if (GetTickCount() - start_tick_count > service_status.dwWaitHint){
 				// run_service: Timeout waiting for service to stop
-				return;
+				return false;
 			}
 		}
 	}
 
 	// Attempt to start the service.
-
 	if (!StartService(serv.handle(),  // handle to service 
 
 		// number of arguments 
@@ -258,9 +302,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 		// no arguments 
 		NULL)){
 
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()), 
-            "run_service: StartService failed");
-		return;
+        // StartService failed
+		return false;
 	}
 
 	// Check the status until the service is no longer start pending. 
@@ -272,9 +315,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 		sizeof(SERVICE_STATUS_PROCESS), // size of structure
 		&size_for_buffer)){               // if buffer too small
 
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "run_service: QueryServiceStatusEx failed");
-		return;
+        // QueryServiceStatusEx
+		return false;
 	}
 
 	// Save the tick count and initial checkpoint.
@@ -306,10 +348,8 @@ void NativeServiceHelper::run_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS), // size of structure
 			&size_for_buffer)){              // if buffer too small
 
-            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-                "run_service: QueryServiceStatusEx failed");
-
-			break;
+            // QueryServiceStatusEx
+			return false;
 		}
 
 		if (service_status.dwCheckPoint > old_check_point) {
@@ -330,31 +370,37 @@ void NativeServiceHelper::run_service(const string& service_name)
 	// Determine whether the service is running.
 
 	if (service_status.dwCurrentState == SERVICE_RUNNING) {
-		return;
+		return true;
 	}
 	else {
 		stringstream ss;
-
+#if 0
 		ss << "Service not started. \n"
 			<< "  Current State: " << service_status.dwCurrentState << '\n'
 			<< "  Exit Code: " << service_status.dwWin32ExitCode << '\n'
 			<< "  Check Point: " << service_status.dwCheckPoint << '\n'
 			<< "  Wait Hint: " << service_status.dwWaitHint;
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()), ss.str().c_str());
+#endif
+        return false;
 	}
+    return true;
 }
 
 
 //static 
-void NativeServiceHelper::stop_service(const string& service_name)
+bool NativeServiceHelper::stop_service(const std::string& service_name)
 {
-
-	// Get a handle to the SCM database. 
+    // Get a handle to the SCM database
     ScmManager scm(SC_MANAGER_CONNECT | SC_MANAGER_ENUMERATE_SERVICE);
-    
+    if (!scm.valid()) {
+        return false;
+    }
 
-	// Get a handle to the service.
-    ServiceWrapper serv(scm.handle(), service_name, SERVICE_QUERY_STATUS | SERVICE_STOP);
+    // Get a handle to the service.
+    ServiceWrapper serv(scm.handle(), service_name, SERVICE_QUERY_STATUS | SERVICE_START);
+    if (!serv.valid()) {
+        return false;
+    }
 
 	DWORD start_time = GetTickCount();
 	DWORD size_for_buffer = 0;
@@ -366,15 +412,14 @@ void NativeServiceHelper::stop_service(const string& service_name)
 		sizeof(SERVICE_STATUS_PROCESS),
 		&size_for_buffer)){
 
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "stop_service: QueryServiceStatusEx failed with");
-		return;
+        // stop_service: QueryServiceStatusEx
+		return false;
 	}
 
 	if (service_status_process.dwCurrentState == SERVICE_STOPPED)
 	{
 		// Service is already stopped
-		return;
+		return true;
 	}
 
 	// If a stop is pending, wait for it.
@@ -403,18 +448,17 @@ void NativeServiceHelper::stop_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS),
 			&size_for_buffer)){
 
-            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-                "stop_service: QueryServiceStatusEx failed");
-			return;
+            // stop_service: QueryServiceStatusEx failed
+			return false;
 		}
 
 		if (service_status_process.dwCurrentState == SERVICE_STOPPED) {
-			return;
+			return true;
 		}
 
 		if (GetTickCount() - start_time > service_timeout) {
 			// Service stop timed out
-			return;
+			return false;
 		}
 	}
 
@@ -428,9 +472,8 @@ void NativeServiceHelper::stop_service(const string& service_name)
 		SERVICE_CONTROL_STOP,
 		(LPSERVICE_STATUS)&service_status_process)){
 
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "stop_service: ControlService failed");
-		return;
+        // stop_service: ControlService failed
+		return false;
 	}
 
 	// Wait for the service to stop.
@@ -445,9 +488,8 @@ void NativeServiceHelper::stop_service(const string& service_name)
 			sizeof(SERVICE_STATUS_PROCESS),
 			&size_for_buffer)) {
 
-            throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-                "stop_service: QueryServiceStatusEx failed");
-			return;
+            // stop_service: QueryServiceStatusEx failed
+			return false;
 		}
 
 		if (service_status_process.dwCurrentState == SERVICE_STOPPED)
@@ -455,26 +497,29 @@ void NativeServiceHelper::stop_service(const string& service_name)
 
 		if (GetTickCount() - start_time > service_timeout){
 			// Wait timed out
-			return;
+			return false;
 		}
 	}
+    return true;
 }
 
 
 //static 
-void NativeServiceHelper::register_service(const std::string& service_name, 
+bool NativeServiceHelper::register_service(const std::string& service_name, 
     const std::string& display_name, 
-    const std::string& account_name /*= ""*/)
+    const std::string& account_name)
 {
 	char service_binary[MAX_PATH] = {};
 	if (!GetModuleFileNameA(NULL, service_binary, MAX_PATH)) {
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "Cannot install service");
-		return;
+        // Cannot install service
+		return false;
 	}
 
 	// Get a handle to the SCM database
 	ScmManager scm(SC_MANAGER_ALL_ACCESS);
+    if (!scm.valid()) {
+        return false;
+    }
 
 	// Create the service
 
@@ -498,48 +543,53 @@ void NativeServiceHelper::register_service(const std::string& service_name,
 		NULL);                     // no password 
 
 	if (schService == NULL) {
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "register_service: CreateService failed");
-		return;
+        // register_service: CreateService failed
+		return false;
 	}
 
 	CloseServiceHandle(schService);
+    return true;
 }
 
 
 //static 
-VOID WINAPI NativeServiceHelper::delete_service(const string& service_name)
+bool NativeServiceHelper::delete_service(const std::string& service_name)
 {
 
 	// Get a handle to the SCM database. 
 	ScmManager scm(SC_MANAGER_ALL_ACCESS);
+    if (!scm.valid()) {
+        return false;
+    }
 
 	// Get a handle to the service.
-
 	SC_HANDLE service_handle = OpenServiceA(
 		scm.handle(),          // SCM database 
 		service_name.c_str(),  // name of service 
 		DELETE);               // need delete access 
 
 	if (service_handle == NULL){
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "delete_service: OpenService failed");
-		return;
+        // delete_service: OpenService failed
+		return false;
 	}
 
 	// Delete the service.
 	if (!DeleteService(service_handle)){
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "delete_service: DeleteService failed");
+        // delete_service: DeleteService failed
+        return false;
 	}
 
 	CloseServiceHandle(service_handle);
+    return true;
 }
 
-void NativeServiceHelper::set_service_description(const std::string& service_name, const std::string& service_description)
+bool helpers::NativeServiceHelper::set_service_description(const std::string& service_name, const std::string& service_description)
 {
     // Get a handle to the SCM database
     ScmManager scm(SC_MANAGER_ALL_ACCESS);
+    if (!scm.valid()) {
+        return false;
+    }
 
     // Get a handle to the service.
     ServiceWrapper serv(scm.handle(), service_name, SERVICE_CHANGE_CONFIG);
@@ -548,18 +598,25 @@ void NativeServiceHelper::set_service_description(const std::string& service_nam
     system_service_description.lpDescription = const_cast<LPSTR>(service_description.c_str());
 
     if (!ChangeServiceConfig2A(serv.handle(), SERVICE_CONFIG_DESCRIPTION, &system_service_description)) {
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "set_service_description: ChangeServiceConfig2 failed");
+        // set_service_description: ChangeServiceConfig2 failed
+        return false;
     }
+    return true;
 }
 
-void NativeServiceHelper::set_service_restore_action(const std::string& service_name)
+bool NativeServiceHelper::set_service_restore_action(const std::string& service_name)
 {
     // Get a handle to the SCM database
     ScmManager scm(SC_MANAGER_ALL_ACCESS);
+    if (!scm.valid()) {
+        return false;
+    }
 
     // Get a handle to the service.
     ServiceWrapper serv(scm.handle(), service_name, SERVICE_ALL_ACCESS);
+    if (!serv.valid()) {
+        return false;
+    }
 
     // 1st, 2nd, 3rd+ actions
     
@@ -578,43 +635,10 @@ void NativeServiceHelper::set_service_restore_action(const std::string& service_
     failuse_actions.lpsaActions = sequence_of_actions;
 
     if (!ChangeServiceConfig2(serv.handle(), SERVICE_CONFIG_FAILURE_ACTIONS, &failuse_actions)) {
-        throw std::system_error(std::error_code(GetLastError(), std::system_category()),
-            "set_service_restore_action: ChangeServiceConfig2 failed");
+        // set_service_restore_action: ChangeServiceConfig2 failed
+        return false;
     }
-}
-
-bool NativeServiceHelper::is_system_user()
-{
-    UCHAR token_user_information[sizeof(TOKEN_USER) + 8 + (4 * SID_MAX_SUB_AUTHORITIES)] = {};
-    PTOKEN_USER user_information_ptr = reinterpret_cast<PTOKEN_USER>(token_user_information);
-    SID_IDENTIFIER_AUTHORITY sid_authority = SECURITY_NT_AUTHORITY;
-    BOOL is_system = FALSE;
-
-    {
-        // open process token
-        helpers::WinHandlePtr process_token{};
-        if (!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, process_token.dereference_handle())) {
-            return is_system;
-        }
-
-        // retrieve user SID ()
-        ULONG token_info_size{};
-        if (!GetTokenInformation(process_token, TokenUser, user_information_ptr, sizeof(token_user_information), &token_info_size)) {
-            return FALSE;
-        }
-    }
-
-    // allocate LocalSystem well-known SID (has only 1 sub-authority, 7 others possible are set to 0)
-    PSID system_user_sid = {};
-    if (!AllocateAndInitializeSid(&sid_authority, 1, SECURITY_LOCAL_SYSTEM_RID, 0, 0, 0, 0, 0, 0, 0, &system_user_sid)) {
-        return FALSE;
-    }
-
-    // compare the user SID from the token with the LocalSystem SID
-    is_system = EqualSid(user_information_ptr->User.Sid, system_user_sid);
-    FreeSid(system_user_sid);
-
-    return is_system;
+    return true;
 }
 
 #endif // defined(_WIN32) || defined(_WIN64)

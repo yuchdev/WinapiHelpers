@@ -36,7 +36,7 @@ using namespace std;
 using namespace helpers;
 
 struct helpers::HKEY_holder {
-    HKEY key;
+    HKEY key = nullptr;
 
     /// @brief get Windows-specific registry root handle by its string value
     static HKEY get_root_key(const char* root_key)
@@ -46,9 +46,7 @@ struct helpers::HKEY_holder {
             return (*it).second;
         }
         else {
-            std::stringstream ss;
-            ss << "Wrong Windows registry root param passed: " << root_key;
-            throw std::runtime_error(ss.str().c_str());
+            return nullptr;
         }
     }
 
@@ -77,11 +75,16 @@ RegistryKey::RegistryKey(const std::string& key, bool read_only/* = false*/) : h
     std::string root_key(key.substr(0, root_ends));
     std::string key_name(key.substr(root_ends + 1));
     HKEY root = HKEY_holder::get_root_key(root_key.c_str());
+    if (root == nullptr) {
+        throw std::system_error(std::error_code(::GetLastError(), std::system_category()));
+    }
+    
     REGSAM samDesired;
     if (is_x32_application_on_x64())
         samDesired = KEY_WOW64_64KEY;
     else
         samDesired = KEY_WOW64_32KEY;
+
     WinErrorChecker::last_error_throw_retcode(
         RegOpenKeyExA(
             root,
@@ -97,38 +100,7 @@ RegistryKey::~RegistryKey()
     RegCloseKey(hkey_->key);
 }
 
-bool RegistryKey::delete_tree(const std::string& key)
-{
-    HKEY root{};
-    HKEY holder{};
-    size_t root_ends = key.find_first_of('\\');
-    std::string root_key(key.substr(0, root_ends));
-    std::string key_name(key.substr(root_ends + 1));
-
-    try {
-        root = HKEY_holder::get_root_key(root_key.c_str());
-    }
-    catch (const std::exception&) {
-        return false;
-    }
-
-    LONG ret_code = RegOpenKeyExA(root, key_name.c_str(), 0, KEY_ALL_ACCESS, &holder);
-    if (ERROR_SUCCESS == ret_code) {
-        ret_code = RegDeleteTree(holder, NULL);
-        if (ERROR_SUCCESS != ret_code) {
-            return false;
-        }
-        RegCloseKey(holder);
-        return true;
-    }
-    if (ERROR_FILE_NOT_FOUND == ret_code) {
-        return false;
-    }
-
-    return false;
-}
-
-bool RegistryKey::is_key_exist(const std::string& key)
+std::optional<bool> helpers::RegistryKey::is_key_exist(const std::string& key)
 {
     HKEY root{};
     HKEY holder{};
@@ -160,7 +132,7 @@ bool RegistryKey::is_key_exist(const std::string& key)
     return false;
 }
 
-bool RegistryKey::is_value_exist(const std::string& value_name) const
+std::optional<bool> helpers::RegistryKey::is_value_exist(const std::string& value_name) const
 {
     LONG ret_code = ::RegQueryValueExA(hkey_->key, // Root key
         value_name.c_str(), // value name
@@ -257,6 +229,35 @@ bool RegistryKey::create_key(const string &key_name) const
         KEY_ALL_ACCESS, NULL, &hkey_->key, NULL));
 }
 
+bool RegistryKey::delete_tree(const std::string& key)
+{
+    HKEY root{};
+    HKEY holder{};
+    size_t root_ends = key.find_first_of('\\');
+    std::string root_key(key.substr(0, root_ends));
+    std::string key_name(key.substr(root_ends + 1));
+
+    root = HKEY_holder::get_root_key(root_key.c_str());
+    if (nullptr == root) {
+        return false;
+    }
+
+    LONG ret_code = RegOpenKeyExA(root, key_name.c_str(), 0, KEY_ALL_ACCESS, &holder);
+    if (ERROR_SUCCESS == ret_code) {
+        ret_code = RegDeleteTree(holder, NULL);
+        if (ERROR_SUCCESS != ret_code) {
+            return false;
+        }
+        RegCloseKey(holder);
+        return true;
+    }
+    if (ERROR_FILE_NOT_FOUND == ret_code) {
+        return false;
+    }
+
+    return false;
+}
+
 bool RegistryKey::delete_key(const string &key_name) const
 {
     return WinErrorChecker::retbool_nothrow_retcode(RegDeleteKeyExA(hkey_->key,
@@ -274,96 +275,96 @@ bool RegistryKey::save_to_file(const std::string &file_path, const std::string& 
         return false;
     }
 
+    std::string filename{ file_path };
+    filename += key_name;
     return WinErrorChecker::retbool_nothrow_retcode(RegSaveKeyA(hkey_->key,
-        (file_path + key_name).data(),
+        filename.c_str(),
         NULL));
 }
 
-std::pair<unsigned long, bool> RegistryKey::get_dword_value(const std::string& key) const
+std::optional<unsigned long> helpers::RegistryKey::get_dword_value(const std::string& key_name) const
 {
-    std::pair<unsigned long, bool> result = std::make_pair(0UL, true);
+    unsigned long result = 0UL;
     DWORD dw_value = 1L;
     DWORD value_type = REG_DWORD;
     DWORD ret_buffer_size = sizeof(DWORD);
 
-    result.second = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
-        key.c_str(),       // key name
+    bool ret = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
+        key_name.c_str(),       // key name
         0,              // reserved, == 0
         &value_type,    // receive here type
         reinterpret_cast<LPBYTE>(&dw_value),    // receive here value
         &ret_buffer_size));                             // receive here size
 
-    if (value_type != REG_DWORD) {
-        result.second = false;
+    if ((!ret) || (value_type != REG_DWORD)) {
+        return {};
     }
 
     return result;
 }
 
-std::pair<std::string, bool> RegistryKey::get_string_value(const std::string& key) const
+std::optional<std::string> helpers::RegistryKey::get_string_value(const std::string& key_name) const
 {
-    std::pair<std::string, bool> result = std::make_pair(std::string{}, true);
+    std::string{};
     char buffer[MAX_KEY_LENGTH] = {};
     DWORD value_type = REG_SZ;
     DWORD ret_buffer_size = sizeof(buffer);
 
-    result.second = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
-        key.c_str(),                            // key name
+    bool ret = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
+        key_name.c_str(),                            // key name
         0,                                      // reserved, == 0
         &value_type,                            // receive here type
         reinterpret_cast<LPBYTE>(&buffer),      // receive here value
         &ret_buffer_size));                     // receive here size
 
-    if (value_type != REG_SZ) {
-        result.second = false;
+    if ((!ret) || (value_type != REG_SZ)) {
+        return {};
     }
 
-    result.first = std::string{ buffer };
-    return result;
+    return std::string{buffer};
 }
 
-std::pair<std::string, bool> RegistryKey::get_binary_value(const string &key) const
+std::optional<std::string> helpers::RegistryKey::get_binary_value(const std::string& key_name) const
 {
-    std::pair<std::string, bool> result = std::make_pair(std::string{}, true);
+    std::string result{};
     char buffer[4096] = {};
     DWORD value_type = REG_BINARY;
     DWORD ret_buffer_size = sizeof(buffer);
-    result.second = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
-        key.data(),                                                          // key name
+    bool ret = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
+        key_name.data(),                                                          // key name
         0,                                                                   // reserved
         &value_type,                                                         // value type
         reinterpret_cast<LPBYTE>(&buffer),                                   // OUT
         &ret_buffer_size));                                                  // size
 
-    if (value_type != REG_BINARY) {
-        result.second = false;
+    if ((!ret) || (value_type != REG_BINARY)) {
+        return {};
     }
 
-    result.first = std::string(buffer, ret_buffer_size);
-    return result;
+    result = std::string(buffer, ret_buffer_size);
+    return std::move(result);
 }
 
-std::pair<std::wstring, bool> RegistryKey::get_wstring_value(const std::string& key) const
+std::optional<std::wstring> helpers::RegistryKey::get_wstring_value(const std::string& key_name) const
 {
-    std::pair<std::wstring, bool> result = std::make_pair(std::wstring{}, true);
-    auto ret = get_string_value(key);
-    result.second = ret.second;
+    wstring result{};
+    optional<string> ret = get_string_value(key_name);
+    if (!ret.has_value()) {
+        return {};
+    }
 
-    if (result.second)
-        result.first = to_wstring(ret.first);
-
-    return result;
+    return to_wstring(ret.value());
 }
 
-std::pair<RegistryKey::multi_sz, bool> RegistryKey::get_multi_string_value(const std::string& key) const
+std::optional<RegistryKey::multi_sz> RegistryKey::get_multi_string_value(const std::string& key_name) const
 {
-    std::pair<RegistryKey::multi_sz, bool> result = std::make_pair(RegistryKey::multi_sz{}, true);
+    multi_sz result{};
     DWORD value_type = REG_MULTI_SZ;
     DWORD ret_buffer_size{};
     std::vector<char> buffer(1024);
 
     LONG retcode = ::RegQueryValueExA(hkey_->key, // Root key
-        key.c_str(),       // key name
+        key_name.c_str(),// key name
         0,              // reserved, == 0
         &value_type,    // receive here type
                         // receive here value
@@ -374,18 +375,18 @@ std::pair<RegistryKey::multi_sz, bool> RegistryKey::get_multi_string_value(const
     if (ERROR_MORE_DATA == retcode) {
         buffer.resize(static_cast<size_t>(ret_buffer_size));
 
-        result.second = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
-            key.c_str(),       // key name
+        bool ret = WinErrorChecker::retbool_nothrow_retcode(::RegQueryValueExA(hkey_->key, // Root key
+            key_name.c_str(),       // key name
             0,              // reserved, == 0
             &value_type,    // receive here type
                             // receive here value
             reinterpret_cast<LPBYTE>(&buffer[0]),
             // receive here size
             &ret_buffer_size));
-    }
 
-    if (value_type != REG_MULTI_SZ) {
-        result.second = false;
+        if ((!ret) || (value_type != REG_MULTI_SZ)) {
+            return {};
+        }
     }
 
     // parse REG_MULTI_SZ
@@ -396,80 +397,12 @@ std::pair<RegistryKey::multi_sz, bool> RegistryKey::get_multi_string_value(const
             // most probably we called parsing from the entry which do not contain strings
             break;
         }
-        result.first.push_back(std::string(reinterpret_cast<const char*>(string_item)));
-        string_item += result.first.back().size() + 1;
+        result.push_back(std::string(reinterpret_cast<const char*>(string_item)));
+        string_item += result.back().size() + 1;
 
     } while (string_item[0] != 0 && string_item[1] != 0);
 
     return std::move(result);
-}
-
-std::pair<DWORD, DWORD> RegistryKey::count_subvalues() const
-{
-    // All parameters are [IN], so they receive values for the current key
-    TCHAR    class_name_in_buffer[MAX_PATH] = {};
-    DWORD    class_name_length = MAX_PATH;
-    DWORD    number_of_subkeys_{};
-    DWORD    number_of_subvalues_{};
-    DWORD    longest_subkey_size{};
-    DWORD    longest_class_string{};
-    DWORD    longest_value_name{};
-    DWORD    longest_value_size{};
-    DWORD    security_handle{};
-    FILETIME last_change_time{};
-
-    // Get the class name, subkeys and values count
-    WinErrorChecker::last_error_nothrow_boolean(RegQueryInfoKey(
-        hkey_->key,
-        class_name_in_buffer,
-        &class_name_length,
-        NULL, // reserved 
-        &number_of_subkeys_,
-        &longest_subkey_size,
-        &longest_class_string,
-        &number_of_subvalues_,
-        &longest_value_name,
-        &longest_value_size,
-        &security_handle,
-        &last_change_time));
-
-    return std::make_pair(number_of_subkeys_, number_of_subvalues_);
-}
-
-std::vector<std::string> RegistryKey::enumerate_values() const
-{
-    // return: 1st - number of subkeys, 2nd - number of subvalues
-    std::pair<DWORD, DWORD> enumerator = count_subvalues();
-    std::vector<std::string> subvalues;
-    std::string error_string;
-
-    // enumerator.second is number os subvalues
-    for (DWORD i = 0; i < enumerator.second; i++) {
-
-        char subvalue_name_buffer[MAX_KEY_LENGTH] = {};
-        DWORD subvalue_name_size = MAX_KEY_LENGTH;
-        DWORD value_type{};
-
-        error_string = WinErrorChecker::last_error_nothrow_retcode(RegEnumValueA(hkey_->key, i,
-            subvalue_name_buffer,
-            &subvalue_name_size,
-            NULL,
-            NULL,
-            NULL,
-            &value_type));
-
-        // probably multithreading (very rare) issue
-        // because MAX_KEY_LENGTH enough for any key
-        if (!error_string.empty()) {
-            return std::vector<std::string>{};
-        }
-
-        // enumerate subvalue name (empty string means default)
-        if (subvalue_name_buffer) {
-            subvalues.push_back(subvalue_name_buffer);
-        }
-    }
-    return subvalues;
 }
 
 bool RegistryKey::enable_backup_privilege() const
@@ -480,13 +413,13 @@ bool RegistryKey::enable_backup_privilege() const
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
         &handle_token_)) {
         CloseHandle(handle_token_);
-        return FALSE;
+        return false;
     }
 
     TOKEN_PRIVILEGES privileges_token_;
     if (!LookupPrivilegeValue(NULL, SE_BACKUP_NAME, &privileges_token_.Privileges[0].Luid)) {
         CloseHandle(handle_token_);
-        return FALSE;
+        return false;
     }
 
     privileges_token_.PrivilegeCount = 1;
@@ -494,7 +427,7 @@ bool RegistryKey::enable_backup_privilege() const
 
     if (!AdjustTokenPrivileges(handle_token_, FALSE, &privileges_token_, 0, NULL, 0)) {
         CloseHandle(handle_token_);
-        return FALSE;
+        return false;
     }
 
     CloseHandle(handle_token_);
@@ -509,7 +442,7 @@ bool RegistryKey::enable_restore_privilege() const
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
         &handle_token_)) {
         CloseHandle(handle_token_);
-        return FALSE;
+        return false;
     }
 
     TOKEN_PRIVILEGES privileges_token_;
@@ -518,7 +451,7 @@ bool RegistryKey::enable_restore_privilege() const
         SE_RESTORE_NAME,
         &privileges_token_.Privileges[0].Luid)) {
         CloseHandle(handle_token_);
-        return FALSE;
+        return false;
     }
 
     privileges_token_.PrivilegeCount = 1;
@@ -526,14 +459,14 @@ bool RegistryKey::enable_restore_privilege() const
 
     if (!AdjustTokenPrivileges(handle_token_, FALSE, &privileges_token_, 0, NULL, 0)) {
         CloseHandle(handle_token_);
-        return FALSE;
+        return false;
     }
 
     CloseHandle(handle_token_);
-    return TRUE;
+    return true;
 }
 
-std::vector<std::string> RegistryKey::enumerate_subkeys() const
+std::optional<RegistryKey::values_list> RegistryKey::enumerate_subkeys() const
 {
     // return: 1st - number of subkeys, 2nd - number of subvalues
     std::pair<DWORD, DWORD> enumerator = count_subvalues();
@@ -567,6 +500,74 @@ std::vector<std::string> RegistryKey::enumerate_subkeys() const
     }
 
     return subkeys;
+}
+
+std::optional<RegistryKey::values_list> RegistryKey::enumerate_values() const
+{
+    // return: 1st - number of subkeys, 2nd - number of subvalues
+    std::pair<DWORD, DWORD> enumerator = count_subvalues();
+    std::vector<std::string> subvalues;
+    std::string error_string;
+
+    // enumerator.second is number of subvalues
+    for (DWORD i = 0; i < enumerator.second; i++) {
+
+        char subvalue_name_buffer[MAX_KEY_LENGTH] = {};
+        DWORD subvalue_name_size = MAX_KEY_LENGTH;
+        DWORD value_type{};
+
+        error_string = WinErrorChecker::last_error_nothrow_retcode(RegEnumValueA(hkey_->key, i,
+            subvalue_name_buffer,
+            &subvalue_name_size,
+            NULL,
+            NULL,
+            NULL,
+            &value_type));
+
+        // probably multithreading (very rare) issue
+        // because MAX_KEY_LENGTH enough for any key
+        if (!error_string.empty()) {
+            return std::vector<std::string>{};
+        }
+
+        // enumerate subvalue name (empty string means default)
+        if (subvalue_name_buffer) {
+            subvalues.push_back(subvalue_name_buffer);
+        }
+    }
+    return subvalues;
+}
+
+std::pair<DWORD, DWORD> RegistryKey::count_subvalues() const
+{
+    // All parameters are [IN], so they receive values for the current key
+    TCHAR    class_name_in_buffer[MAX_PATH] = {};
+    DWORD    class_name_length = MAX_PATH;
+    DWORD    number_of_subkeys_{};
+    DWORD    number_of_subvalues_{};
+    DWORD    longest_subkey_size{};
+    DWORD    longest_class_string{};
+    DWORD    longest_value_name{};
+    DWORD    longest_value_size{};
+    DWORD    security_handle{};
+    FILETIME last_change_time{};
+
+    // Get the class name, subkeys and values count
+    WinErrorChecker::last_error_nothrow_boolean(RegQueryInfoKey(
+        hkey_->key,
+        class_name_in_buffer,
+        &class_name_length,
+        NULL, // reserved 
+        &number_of_subkeys_,
+        &longest_subkey_size,
+        &longest_class_string,
+        &number_of_subvalues_,
+        &longest_value_name,
+        &longest_value_size,
+        &security_handle,
+        &last_change_time));
+
+    return std::make_pair(number_of_subkeys_, number_of_subvalues_);
 }
 
 #endif // defined(_WIN32) || defined(_WIN64)

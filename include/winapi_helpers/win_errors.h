@@ -76,7 +76,7 @@ public:
         if (error_message_ID == ERROR_SUCCESS)
             return std::string{};
 
-        return format_error_message(error_message_ID);
+        return error_message(error_message_ID);
     }
 
 
@@ -92,7 +92,7 @@ public:
 #ifdef SYSTEM_ERROR
             throw std::system_error(error_message_ID, std::system_category());
 #else
-            throw std::runtime_error(format_error_message(error_message_ID));
+            throw std::runtime_error(error_message(error_message_ID));
 #endif
         }
     }
@@ -117,7 +117,7 @@ public:
         if (return_code != FALSE)
             return std::string{};
 
-        return format_error_message(GetLastError());
+        return error_message(GetLastError());
     }
 
     // @brief Transform Windows error code to string with throwing an exception
@@ -132,7 +132,7 @@ public:
 #ifdef SYSTEM_ERROR
             throw std::system_error(error_message_ID, std::system_category());
 #else
-            throw std::runtime_error(format_error_message(GetLastError()));
+            throw std::runtime_error(error_message(GetLastError()));
 #endif
         }
     }
@@ -141,19 +141,14 @@ public:
 
 private:
     
-    static std::string format_error_message(DWORD error_message_ID)
+    static std::string error_message(DWORD error_message_ID)
     {
-        // Format Windows error message
-        LPSTR messageBuffer = nullptr;
-        size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-            NULL, error_message_ID, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), reinterpret_cast<LPSTR>(&messageBuffer), 0, NULL);
-
-        // take ownership under Local Heap, perform cleanup in the end of close
-        WinLocalPtr<CHAR> win_string_raii(messageBuffer);
-        std::string error_description(messageBuffer, size);
-        error_description.erase(std::remove(error_description.begin(), error_description.end(), '\r'), error_description.end());
-        error_description.erase(std::remove(error_description.begin(), error_description.end(), '\n'), error_description.end());
-        return error_description;
+        std::error_code ec(error_message_ID, std::system_category());
+        std::string error_msg = ec.message();
+        if (!error_msg.empty() && error_msg[error_msg.size() - 2] == '\r' && error_msg[error_msg.size() - 1] == '\n') {
+            error_msg.erase(error_msg.size() - 2);
+        }
+        return error_msg;
     }
 };
 

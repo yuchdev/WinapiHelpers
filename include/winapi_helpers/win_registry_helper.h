@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <optional>
 
 // Place here WinRegistry-related functions and classes
 
@@ -17,6 +18,7 @@ class RegistryKey {
 public:
 
     using multi_sz = std::vector<std::string>;
+    using values_list = std::vector<std::string>;
 
     /// @brief Open Windows registry key using RegOpenKeyEx() call, with all access
     /// @throw: runtime_error or system_error if unable to open the registry key
@@ -25,65 +27,69 @@ public:
     /// @brief Closes Windows registry key using RegCloseKey() call
     ~RegistryKey();
 
-    /// @brief Remove the registry key recursively
-    static bool delete_tree(const std::string& key);
-
     /// @brief Just check whether the registry key exists
-    static bool is_key_exist(const std::string& key_name);
+    static std::optional<bool> is_key_exist(const std::string& key_name);
 
     /// @brief Just check whether the registry value in the key exists
-    bool is_value_exist(const std::string& value_name) const;
+    std::optional<bool> is_value_exist(const std::string& value_name) const;
 
     /// @brief Set DWORD Windows registry value to the key
+    /// @return: true if assign successful, false otherwise
     bool set_dword_value(const std::string& key_name, unsigned long value);
 
     /// @brief Set string Windows registry value to the key
+    /// @return: true if assign successful, false otherwise
     bool set_string_value(const std::string& key_name, const std::string& value);
 
     /// @brief Set multi-string (REG_MULTI_SZ) Windows registry value to the key
+    /// @return: true if assign successful, false otherwise
     bool set_multi_string_value(const std::string& key_name, const std::vector<std::string>& values);
 
     /// @brief Set binary Windows registry value to the key
+    /// @return: true if assign successful, false otherwise
     bool set_binary_value(const std::string& key_name, const std::string& value);
 
     /// @brief Saves the specified key and all of its subkeys and values to a new file, in the standard format.
-    /// @return part first - status (true/false) second - error string
     bool save_to_file(const std::string& file_path, const std::string& key_name) const;
 
     /// @brief Saves the specified key and all of its subkeys and values to a new file, in the standard format.
-    /// @return part first - status (true/false) second - error string
+    /// @return: true if save successful, false otherwise
     bool load_from_file(const std::string& file_path, const std::string& key_name) const;
 
     /// @brief create specified subkey in context key using RegCreateKeyEx
+    /// @return: true if create successful, false otherwise
     bool create_key(const std::string& key_name) const;
 
+    /// @brief Remove the registry key recursively
+    /// @return: true if delete successful, false otherwise
+    static bool delete_tree(const std::string& key);
+
     /// @brief delete specified subkey in context key using RegCreateKeyEx
-    /// @throw runtime_error
     bool delete_key(const std::string& key_name) const;
 
     /// @brief delete_value of selected key
     bool delete_value(const std::string& value_name);
 
     /// @brief Get ULONG Windows registry value
-    std::pair<unsigned long, bool> get_dword_value(const std::string& key_name) const;
+    std::optional<unsigned long> get_dword_value(const std::string& key_name) const;
 
     /// @brief Get string Windows registry value
-    std::pair<std::string, bool> get_string_value(const std::string& key_name) const;
+    std::optional<std::string> get_string_value(const std::string& key_name) const;
 
     /// @brief Get binary array Windows registry value
-    std::pair<std::string, bool> get_binary_value(const std::string& key_name) const;
+    std::optional<std::string> get_binary_value(const std::string& key_name) const;
 
     /// @brief Get wide string Windows registry value
-    std::pair<std::wstring, bool> get_wstring_value(const std::string& key_name) const;
+    std::optional<std::wstring> get_wstring_value(const std::string& key_name) const;
 
     /// @brief Get multi-string (REG_MULTI_SZ) Windows registry value
-    std::pair<multi_sz, bool> get_multi_string_value(const std::string& key_name) const;
+    std::optional<multi_sz> get_multi_string_value(const std::string& key_name) const;
 
     /// @brief Enumerate current registry key sub-key names
-    std::vector<std::string> enumerate_subkeys() const;
+    std::optional<values_list> enumerate_subkeys() const;
 
     /// @brief Enumerate current registry key value names
-    std::vector<std::string> enumerate_values() const;
+    std::optional<values_list> enumerate_values() const;
 
     /// @brief Enumerate current registry key value names
     /// @return: 1st - number of sub-keys, 2nd - number of sub-values
