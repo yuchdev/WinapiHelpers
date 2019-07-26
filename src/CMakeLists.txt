@@ -6,7 +6,7 @@ file(GLOB SOURCES *.cpp ../include/${TARGET}/*.h)
  
 include_directories(
     ${Boost_INCLUDE_DIRS} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+    ${CMAKE_SOURCE_DIR}/winapi_helpers/include)
  
 add_library(${TARGET} ${SOURCES})
 target_link_libraries(${TARGET} ${Boost_LIBRARIES} Secur32)
