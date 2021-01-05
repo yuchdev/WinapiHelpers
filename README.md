@@ -4,7 +4,7 @@ Set of C++ WinAPI wrappers, the following functionality is covered:
 * BIOS information
 * COM Initializer
 * Windows exceptions (deprecated in C++11)
-* Remote Access Serice exceptions
+* Remote Access Service exceptions
 * RAII wrappers for Windows handles
 * RAII wrappers for Windows Heap
 * Volume and partition information
