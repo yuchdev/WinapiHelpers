@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 #include <atomic>
-#include <boost\thread\shared_mutex.hpp>
+#include <shared_mutex>
 
 namespace helpers {
 
@@ -128,7 +128,7 @@ private:
     static std::map<int, PlacementType> system_codes_2_placement_type_;
 
     // protect from updating disk information during reading
-    mutable boost::shared_mutex m_;
+    mutable std::shared_mutex m_;
 };
 
 } // namespace helpers

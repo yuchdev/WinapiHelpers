@@ -4,7 +4,6 @@
 #include <winapi_helpers/utilities.h>
 
 
-#include <boost/thread/locks.hpp>
 #include <Windows.h>
 
 #include <cassert>
@@ -37,7 +36,7 @@ std::vector<NativePartititonInformation::NativePartititon>
 NativePartititonInformation::enumerate_partititons() const
 {
     // read lock
-    boost::shared_lock<boost::shared_mutex> lk(m_);
+    std::shared_lock<std::shared_mutex> lk(m_);
     std::vector<NativePartititon> partitions;
     std::transform(partititon_info_.begin(), partititon_info_.end(), std::back_inserter(partitions), [](const auto& part_info) {
         return part_info.second;
@@ -54,7 +53,7 @@ NativePartititonInformation::get_file_partition_info(const std::string& filepath
     char drive_letter = std::toupper(filepath[0]);
 
     // read lock
-    boost::shared_lock<boost::shared_mutex> lk(m_);
+    std::shared_lock<std::shared_mutex> lk(m_);
 
     auto it = partititon_info_.find(drive_letter);
 
@@ -126,7 +125,7 @@ void NativePartititonInformation::collect_partititon_information()
     }
     
     // write lock
-    std::unique_lock<boost::shared_mutex> unique_lk(m_);
+    std::unique_lock<std::shared_mutex> unique_lk(m_);
 
     partititon_info_.clear();
     while (drive_mask) {

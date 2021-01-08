@@ -2,7 +2,7 @@
 
 #include <winapi_helpers/win_special_path_helper.h>
 #include <winapi_helpers/win_service_helper.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <Windows.h>
 #include <shlobj.h>
@@ -88,9 +88,9 @@ std::wstring NativePathHelpers::get_common_appdata_path()
 std::wstring NativePathHelpers::create_root_tempdir()
 {
     std::wstring default_temp(L"C:/Temp");
-    boost::system::error_code error;
-    if (!boost::filesystem::is_directory(default_temp)) {
-        boost::filesystem::create_directory(default_temp, error);
+    std::error_code error;
+    if (!std::filesystem::is_directory(default_temp)) {
+        std::filesystem::create_directory(default_temp, error);
     }
     return default_temp;
 }
