@@ -39,7 +39,7 @@ std::wstring NativePathHelpers::get_home_path()
 
     std::wstring home_path;
     static wchar_t user_home_path[MAX_PATH + 1] = {};
-    if (::SHGetSpecialFolderPathW(NULL, user_home_path, CSIDL_PROFILE, FALSE)) {
+    if (::SHGetSpecialFolderPathW(nullptr, user_home_path, CSIDL_PROFILE, FALSE)) {
         home_path = user_home_path;
     }
 
@@ -59,7 +59,7 @@ std::wstring NativePathHelpers::get_appdata_path(int special_path_type, bool ign
 
     std::wstring appdata_path;
     static wchar_t user_appdata_path[MAX_PATH + 1] = {};
-    if (::SHGetSpecialFolderPathW(NULL, user_appdata_path, special_path_type, FALSE)) {
+    if (::SHGetSpecialFolderPathW(nullptr, user_appdata_path, special_path_type, FALSE)) {
         appdata_path = user_appdata_path;
     }
 

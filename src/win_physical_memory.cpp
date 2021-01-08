@@ -19,7 +19,7 @@ HANDLE get_physical_memory_handle() {
     RtlInitUnicodeString(&memory_device_string, physical_memory_device_name);
 
     OBJECT_ATTRIBUTES attributes{};
-    InitializeObjectAttributes(&attributes, &memory_device_string, OBJ_CASE_INSENSITIVE, NULL, NULL);
+    InitializeObjectAttributes(&attributes, &memory_device_string, OBJ_CASE_INSENSITIVE, nullptr, nullptr);
 
     NTSTATUS status = NtOpenSection(&physical_memory_native_handle, SECTION_MAP_READ, &attributes);
     if (!NT_SUCCESS(status)) {

@@ -29,7 +29,7 @@ bool helpers::is_x32_application_on_x64()
     LPFN_ISWOW64PROCESS fnIsWow64Process = 
         (LPFN_ISWOW64PROCESS) GetProcAddress(GetModuleHandle(TEXT("kernel32")),"IsWow64Process");
 
-    if(NULL != fnIsWow64Process){
+    if(nullptr != fnIsWow64Process){
         if (!fnIsWow64Process(GetCurrentProcess(), &is_wow_64)){
             //handle error
         }

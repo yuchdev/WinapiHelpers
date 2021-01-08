@@ -175,8 +175,8 @@ int NativePartititonInformation::get_physical_drive_number(char windows_drive_le
     system_partition_name_pattern[drive_letter_position] = windows_drive_letter;
     HANDLE partitionHandle = ::CreateFileW(system_partition_name_pattern,
         GENERIC_READ,
-        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-        OPEN_EXISTING, 0, NULL);
+        FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+        OPEN_EXISTING, 0, nullptr);
 
     if (partitionHandle == INVALID_HANDLE_VALUE) {
         return -1;
@@ -188,12 +188,12 @@ int NativePartititonInformation::get_physical_drive_number(char windows_drive_le
     BOOL result = DeviceIoControl(
         partitionHandle,
         IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS,
-        NULL,
+        nullptr,
         0,
         &diskExtents,
         sizeof(diskExtents),
         &read_structure_size,
-        NULL);
+        nullptr);
 
     if (result) {
         return diskExtents.Extents[0].DiskNumber;
@@ -237,8 +237,8 @@ NativePartititonInformation::get_drive_type(int physical_drive_number) const
     HANDLE physical_drive_device = ::CreateFileW(physical_drive_pattern,
         //We need write access to send ATA command to read RPMs
         GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-        OPEN_EXISTING, 0, NULL);
+        FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+        OPEN_EXISTING, 0, nullptr);
 
     if (physical_drive_device == INVALID_HANDLE_VALUE) {
         return DiskType::UnknownType;
@@ -251,7 +251,7 @@ NativePartititonInformation::get_drive_type(int physical_drive_number) const
     bytesReturned = 0;
     DEVICE_TRIM_DESCRIPTOR dtd = {};
     if (::DeviceIoControl(physical_drive_device, IOCTL_STORAGE_QUERY_PROPERTY,
-        &spqTrim, sizeof(spqTrim), &dtd, sizeof(dtd), &bytesReturned, NULL) &&
+        &spqTrim, sizeof(spqTrim), &dtd, sizeof(dtd), &bytesReturned, nullptr) &&
         bytesReturned == sizeof(dtd)) {
         //Got it
         return dtd.TrimEnabled ? DiskType::SSD : DiskType::HDD;

@@ -135,9 +135,9 @@ std::optional<bool> helpers::RegistryKey::is_value_exist(const std::string& valu
     LONG ret_code = ::RegQueryValueExA(hkey_->key, // Root key
         value_name.c_str(), // value name
         0,          // reserved, == 0
-        NULL,       // receive type - nothing, just check
-        NULL,       // receive here value - also nothing, just check
-        NULL);      // size is null
+        nullptr,       // receive type - nothing, just check
+        nullptr,       // receive here value - also nothing, just check
+        nullptr);      // size is null
 
     if (ERROR_SUCCESS == ret_code) {
         return true;
@@ -223,8 +223,8 @@ bool RegistryKey::load_from_file(const string &file_path, const std::string& key
 bool RegistryKey::create_key(const string &key_name) const
 {
     return WinErrorChecker::retbool_nothrow_retcode(RegCreateKeyExA(hkey_->key,
-        key_name.data(), 0, NULL, REG_OPTION_NON_VOLATILE,
-        KEY_ALL_ACCESS, NULL, &hkey_->key, NULL));
+        key_name.data(), 0, nullptr, REG_OPTION_NON_VOLATILE,
+        KEY_ALL_ACCESS, nullptr, &hkey_->key, nullptr));
 }
 
 bool RegistryKey::delete_tree(const std::string& key)
@@ -242,7 +242,7 @@ bool RegistryKey::delete_tree(const std::string& key)
 
     LONG ret_code = RegOpenKeyExA(root, key_name.c_str(), 0, KEY_ALL_ACCESS, &holder);
     if (ERROR_SUCCESS == ret_code) {
-        ret_code = RegDeleteTree(holder, NULL);
+        ret_code = RegDeleteTree(holder, nullptr);
         if (ERROR_SUCCESS != ret_code) {
             return false;
         }
@@ -277,7 +277,7 @@ bool RegistryKey::save_to_file(const std::string &file_path, const std::string& 
     filename += key_name;
     return WinErrorChecker::retbool_nothrow_retcode(RegSaveKeyA(hkey_->key,
         filename.c_str(),
-        NULL));
+        nullptr));
 }
 
 std::optional<unsigned long> helpers::RegistryKey::get_dword_value(const std::string& key_name) const
@@ -405,7 +405,7 @@ std::optional<RegistryKey::multi_sz> RegistryKey::get_multi_string_value(const s
 
 bool RegistryKey::enable_backup_privilege() const
 {
-    HANDLE handle_token_ = NULL;
+    HANDLE handle_token_ = nullptr;
     if (!OpenProcessToken(
         GetCurrentProcess(),
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
@@ -415,7 +415,7 @@ bool RegistryKey::enable_backup_privilege() const
     }
 
     TOKEN_PRIVILEGES privileges_token_;
-    if (!LookupPrivilegeValue(NULL, SE_BACKUP_NAME, &privileges_token_.Privileges[0].Luid)) {
+    if (!LookupPrivilegeValue(nullptr, SE_BACKUP_NAME, &privileges_token_.Privileges[0].Luid)) {
         CloseHandle(handle_token_);
         return false;
     }
@@ -423,7 +423,7 @@ bool RegistryKey::enable_backup_privilege() const
     privileges_token_.PrivilegeCount = 1;
     privileges_token_.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if (!AdjustTokenPrivileges(handle_token_, FALSE, &privileges_token_, 0, NULL, 0)) {
+    if (!AdjustTokenPrivileges(handle_token_, FALSE, &privileges_token_, 0, nullptr, 0)) {
         CloseHandle(handle_token_);
         return false;
     }
@@ -434,7 +434,7 @@ bool RegistryKey::enable_backup_privilege() const
 
 bool RegistryKey::enable_restore_privilege() const
 {
-    HANDLE handle_token_ = NULL;
+    HANDLE handle_token_ = nullptr;
     if (!OpenProcessToken(
         GetCurrentProcess(),
         TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY,
@@ -445,7 +445,7 @@ bool RegistryKey::enable_restore_privilege() const
 
     TOKEN_PRIVILEGES privileges_token_;
     if (!LookupPrivilegeValue(
-        NULL,
+        nullptr,
         SE_RESTORE_NAME,
         &privileges_token_.Privileges[0].Luid)) {
         CloseHandle(handle_token_);
@@ -455,7 +455,7 @@ bool RegistryKey::enable_restore_privilege() const
     privileges_token_.PrivilegeCount = 1;
     privileges_token_.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if (!AdjustTokenPrivileges(handle_token_, FALSE, &privileges_token_, 0, NULL, 0)) {
+    if (!AdjustTokenPrivileges(handle_token_, FALSE, &privileges_token_, 0, nullptr, 0)) {
         CloseHandle(handle_token_);
         return false;
     }
@@ -480,9 +480,9 @@ std::optional<RegistryKey::values_list> RegistryKey::enumerate_subkeys() const
         error_string = WinErrorChecker::last_error_nothrow_retcode(RegEnumKeyExA(hkey_->key, i,
             subkey_name_buffer,
             &subkey_name_size,
-            NULL,
-            NULL,
-            NULL,
+            nullptr,
+            nullptr,
+            nullptr,
             &last_change_time));
 
         // probably multithreading (very rare) issue
@@ -517,9 +517,9 @@ std::optional<RegistryKey::values_list> RegistryKey::enumerate_values() const
         error_string = WinErrorChecker::last_error_nothrow_retcode(RegEnumValueA(hkey_->key, i,
             subvalue_name_buffer,
             &subvalue_name_size,
-            NULL,
-            NULL,
-            NULL,
+            nullptr,
+            nullptr,
+            nullptr,
             &value_type));
 
         // probably multithreading (very rare) issue
@@ -555,7 +555,7 @@ std::pair<DWORD, DWORD> RegistryKey::count_subvalues() const
         hkey_->key,
         class_name_in_buffer,
         &class_name_length,
-        NULL, // reserved 
+        nullptr, // reserved 
         &number_of_subkeys_,
         &longest_subkey_size,
         &longest_class_string,
