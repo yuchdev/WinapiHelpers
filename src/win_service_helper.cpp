@@ -19,9 +19,9 @@ class ScmManager{
 public:
 
 	/// @brief Service Control Manager initializer
-    explicit ScmManager(DWORD desired_access) :_scm_handle(OpenSCManager(NULL, // local computer
+    explicit ScmManager(DWORD desired_access) :_scm_handle(OpenSCManager(nullptr, // local computer
 		// servicesActive database 
-		NULL,
+		nullptr,
 		// full access rights 
         desired_access))
     {
@@ -84,16 +84,16 @@ private:
 std::optional<bool> NativeServiceHelper::is_admin_access()
 {
 
-    SC_HANDLE service_handle = OpenSCManager(NULL, // local computer
+    SC_HANDLE service_handle = OpenSCManager(nullptr, // local computer
         // servicesActive database 
-        NULL,
+        nullptr,
         // full access rights 
         SC_MANAGER_ALL_ACCESS);
 
-    if ((service_handle == NULL) && (ERROR_ACCESS_DENIED == GetLastError())){
+    if ((service_handle == nullptr) && (ERROR_ACCESS_DENIED == GetLastError())){
         return false;
     }
-    else if (service_handle == NULL){
+    else if (service_handle == nullptr){
         // OpenService failed
         return {};
     }
@@ -147,10 +147,10 @@ std::optional<bool> NativeServiceHelper::is_service_registered(const std::string
 
     SC_HANDLE service_handle = OpenServiceA(scm.handle(), service_name.c_str(), SERVICE_QUERY_STATUS);
 
-	if ((service_handle == NULL) && (ERROR_SERVICE_DOES_NOT_EXIST == GetLastError())){
+	if ((service_handle == nullptr) && (ERROR_SERVICE_DOES_NOT_EXIST == GetLastError())){
 		return false;
 	}
-    else if (service_handle == NULL) {
+    else if (service_handle == nullptr) {
         // OpenService failed
         return false;
     };
@@ -300,7 +300,7 @@ bool NativeServiceHelper::start_service(const std::string& service_name)
 		0,
 
 		// no arguments 
-		NULL)){
+		nullptr)){
 
         // StartService failed
 		return false;
@@ -510,7 +510,7 @@ bool NativeServiceHelper::register_service(const std::string& service_name,
     const std::string& account_name)
 {
 	char service_binary[MAX_PATH] = {};
-	if (!GetModuleFileNameA(NULL, service_binary, MAX_PATH)) {
+	if (!GetModuleFileNameA(nullptr, service_binary, MAX_PATH)) {
         // Cannot install service
 		return false;
 	}
@@ -535,14 +535,14 @@ bool NativeServiceHelper::register_service(const std::string& service_name,
 		SERVICE_AUTO_START,        // start type 
 		SERVICE_ERROR_NORMAL,      // error control type 
 		service_binary,            // path to service's binary 
-		NULL,                      // no load ordering group 
-		NULL,                      // no tag identifier 
-		NULL,                      // no dependencies 
-        // LocalSystem account if NULL, "DomainName\UserName" otherwise
-        account_name.empty() ? NULL : account_name.c_str(),
-		NULL);                     // no password 
+		nullptr,                      // no load ordering group 
+		nullptr,                      // no tag identifier 
+		nullptr,                      // no dependencies 
+        // LocalSystem account if nullptr, "DomainName\UserName" otherwise
+        account_name.empty() ? nullptr : account_name.c_str(),
+		nullptr);                     // no password 
 
-	if (schService == NULL) {
+	if (schService == nullptr) {
         // register_service: CreateService failed
 		return false;
 	}
@@ -568,7 +568,7 @@ bool NativeServiceHelper::delete_service(const std::string& service_name)
 		service_name.c_str(),  // name of service 
 		DELETE);               // need delete access 
 
-	if (service_handle == NULL){
+	if (service_handle == nullptr){
         // delete_service: OpenService failed
 		return false;
 	}

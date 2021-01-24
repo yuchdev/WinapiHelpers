@@ -17,10 +17,10 @@ ComInitializer::ComInitializer(ThreadingModel model)
     HRESULT hres{};
 
     if (ThreadingModel::com_single_thread == model) {
-        hres = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
+        hres = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_SPEED_OVER_MEMORY);
     }
     else if (ThreadingModel::com_multi_thread == model) {
-        hres = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_SPEED_OVER_MEMORY);
+        hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_SPEED_OVER_MEMORY);
     }
 
     if (FAILED(hres)) {

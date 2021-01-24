@@ -4,7 +4,6 @@
 #include <winapi_helpers/utilities.h>
 
 
-#include <boost/thread/locks.hpp>
 #include <Windows.h>
 
 #include <cassert>
@@ -37,7 +36,7 @@ std::vector<NativePartititonInformation::NativePartititon>
 NativePartititonInformation::enumerate_partititons() const
 {
     // read lock
-    boost::shared_lock<boost::shared_mutex> lk(m_);
+    std::shared_lock<std::shared_mutex> lk(m_);
     std::vector<NativePartititon> partitions;
     std::transform(partititon_info_.begin(), partititon_info_.end(), std::back_inserter(partitions), [](const auto& part_info) {
         return part_info.second;
@@ -54,7 +53,7 @@ NativePartititonInformation::get_file_partition_info(const std::string& filepath
     char drive_letter = std::toupper(filepath[0]);
 
     // read lock
-    boost::shared_lock<boost::shared_mutex> lk(m_);
+    std::shared_lock<std::shared_mutex> lk(m_);
 
     auto it = partititon_info_.find(drive_letter);
 
@@ -126,7 +125,7 @@ void NativePartititonInformation::collect_partititon_information()
     }
     
     // write lock
-    std::unique_lock<boost::shared_mutex> unique_lk(m_);
+    std::unique_lock<std::shared_mutex> unique_lk(m_);
 
     partititon_info_.clear();
     while (drive_mask) {
@@ -176,8 +175,8 @@ int NativePartititonInformation::get_physical_drive_number(char windows_drive_le
     system_partition_name_pattern[drive_letter_position] = windows_drive_letter;
     HANDLE partitionHandle = ::CreateFileW(system_partition_name_pattern,
         GENERIC_READ,
-        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-        OPEN_EXISTING, 0, NULL);
+        FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+        OPEN_EXISTING, 0, nullptr);
 
     if (partitionHandle == INVALID_HANDLE_VALUE) {
         return -1;
@@ -189,12 +188,12 @@ int NativePartititonInformation::get_physical_drive_number(char windows_drive_le
     BOOL result = DeviceIoControl(
         partitionHandle,
         IOCTL_VOLUME_GET_VOLUME_DISK_EXTENTS,
-        NULL,
+        nullptr,
         0,
         &diskExtents,
         sizeof(diskExtents),
         &read_structure_size,
-        NULL);
+        nullptr);
 
     if (result) {
         return diskExtents.Extents[0].DiskNumber;
@@ -238,8 +237,8 @@ NativePartititonInformation::get_drive_type(int physical_drive_number) const
     HANDLE physical_drive_device = ::CreateFileW(physical_drive_pattern,
         //We need write access to send ATA command to read RPMs
         GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-        OPEN_EXISTING, 0, NULL);
+        FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+        OPEN_EXISTING, 0, nullptr);
 
     if (physical_drive_device == INVALID_HANDLE_VALUE) {
         return DiskType::UnknownType;
@@ -252,7 +251,7 @@ NativePartititonInformation::get_drive_type(int physical_drive_number) const
     bytesReturned = 0;
     DEVICE_TRIM_DESCRIPTOR dtd = {};
     if (::DeviceIoControl(physical_drive_device, IOCTL_STORAGE_QUERY_PROPERTY,
-        &spqTrim, sizeof(spqTrim), &dtd, sizeof(dtd), &bytesReturned, NULL) &&
+        &spqTrim, sizeof(spqTrim), &dtd, sizeof(dtd), &bytesReturned, nullptr) &&
         bytesReturned == sizeof(dtd)) {
         //Got it
         return dtd.TrimEnabled ? DiskType::SSD : DiskType::HDD;

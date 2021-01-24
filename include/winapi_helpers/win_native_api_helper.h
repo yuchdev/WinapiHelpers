@@ -57,7 +57,7 @@ typedef OBJECT_ATTRIBUTES *POBJECT_ATTRIBUTES;
     (p)->Attributes = a;                                \
     (p)->ObjectName = n;                                \
     (p)->SecurityDescriptor = s;                        \
-    (p)->SecurityQualityOfService = NULL;               \
+    (p)->SecurityQualityOfService = nullptr;            \
     }
 
 NTSTATUS (__stdcall *NtUnmapViewOfSection)(IN HANDLE  ProcessHandle, IN PVOID  BaseAddress);

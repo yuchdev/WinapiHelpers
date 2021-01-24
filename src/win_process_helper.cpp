@@ -22,14 +22,14 @@ bool NativeProcessHelper::execute(const char* executable, bool exec_async /*= fa
 #endif
 
     std::string return_message = WinErrorChecker::last_error_nothrow_boolean(CreateProcessA(
-        NULL,
+        nullptr,
         const_cast<LPSTR>(executable),
-        NULL,	// lpProcessAttributes
-        NULL,	// lpThreadAttributes
+        nullptr,	// lpProcessAttributes
+        nullptr,	// lpThreadAttributes
         FALSE,	// bInheritHandles
         NULL,	// dwCreationFlags
-        NULL,	// lpEnvironment
-        NULL,	// lpCurrentDirectory
+        nullptr,	// lpEnvironment
+        nullptr,	// lpCurrentDirectory
         &si,	// LPSTARTUPINFO
         &pi));	// LPPROCESS_INFORMATION
 
@@ -73,14 +73,14 @@ bool NativeProcessHelper::execute(const wchar_t* executable, bool exec_async /*=
 #endif
 
     std::string return_message = WinErrorChecker::last_error_nothrow_boolean(CreateProcessW(
-        NULL,
+        nullptr,
         const_cast<LPWSTR>(executable),
-        NULL,	// lpProcessAttributes
-        NULL,	// lpThreadAttributes
+        nullptr,	// lpProcessAttributes
+        nullptr,	// lpThreadAttributes
         FALSE,	// bInheritHandles
         NULL,	// dwCreationFlags
-        NULL,	// lpEnvironment
-        NULL,	// lpCurrentDirectory
+        nullptr,	// lpEnvironment
+        nullptr,	// lpCurrentDirectory
         &si,	// LPSTARTUPINFO
         &pi));	// LPPROCESS_INFORMATION
 
@@ -130,7 +130,7 @@ void NativeProcessHelper::pkill(const char* process_name)
             
             HANDLE current_process = OpenProcess(PROCESS_TERMINATE, 0, process_entry.th32ProcessID);
             
-            if (current_process != NULL && process_entry.th32ProcessID != GetCurrentProcessId()) {
+            if (current_process != nullptr && process_entry.th32ProcessID != GetCurrentProcessId()) {
                 TerminateProcess(current_process, 9);
                 CloseHandle(current_process);
             }
@@ -142,7 +142,7 @@ void NativeProcessHelper::pkill(const char* process_name)
 bool NativeProcessHelper::is_admin_mode()
 {
     BOOL run_as_admin = FALSE;
-    PSID administrators_group_sid = NULL;
+    PSID administrators_group_sid = nullptr;
 
     try{
 
@@ -158,7 +158,7 @@ bool NativeProcessHelper::is_admin_mode()
 
         // Determine whether the SID of Administrators group is enabled in 
         // the primary access token of the process
-        WinErrorChecker::last_error_throw_boolean(CheckTokenMembership(NULL, administrators_group_sid, &run_as_admin));
+        WinErrorChecker::last_error_throw_boolean(CheckTokenMembership(nullptr, administrators_group_sid, &run_as_admin));
 
     }
     catch (const std::system_error& e){
@@ -176,12 +176,12 @@ bool NativeProcessHelper::elevate_to_admin_mode()
     if (!is_admin_mode()) {
 
         char exe_module_path[MAX_PATH] = {};
-        if (GetModuleFileNameA(NULL, exe_module_path, ARRAYSIZE(exe_module_path))) {
+        if (GetModuleFileNameA(nullptr, exe_module_path, ARRAYSIZE(exe_module_path))) {
             SHELLEXECUTEINFOA elevated_executable_info = {};
             elevated_executable_info.cbSize = sizeof(elevated_executable_info);
             elevated_executable_info.lpVerb = "runas";
             elevated_executable_info.lpFile = exe_module_path;
-            elevated_executable_info.hwnd = NULL;
+            elevated_executable_info.hwnd = nullptr;
             elevated_executable_info.nShow = SW_NORMAL;
 
             if (!ShellExecuteExA(&elevated_executable_info))

@@ -2,7 +2,7 @@
 
 #include <winapi_helpers/win_special_path_helper.h>
 #include <winapi_helpers/win_service_helper.h>
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <Windows.h>
 #include <shlobj.h>
@@ -39,7 +39,7 @@ std::wstring NativePathHelpers::get_home_path()
 
     std::wstring home_path;
     static wchar_t user_home_path[MAX_PATH + 1] = {};
-    if (::SHGetSpecialFolderPathW(NULL, user_home_path, CSIDL_PROFILE, FALSE)) {
+    if (::SHGetSpecialFolderPathW(nullptr, user_home_path, CSIDL_PROFILE, FALSE)) {
         home_path = user_home_path;
     }
 
@@ -59,7 +59,7 @@ std::wstring NativePathHelpers::get_appdata_path(int special_path_type, bool ign
 
     std::wstring appdata_path;
     static wchar_t user_appdata_path[MAX_PATH + 1] = {};
-    if (::SHGetSpecialFolderPathW(NULL, user_appdata_path, special_path_type, FALSE)) {
+    if (::SHGetSpecialFolderPathW(nullptr, user_appdata_path, special_path_type, FALSE)) {
         appdata_path = user_appdata_path;
     }
 
@@ -88,9 +88,9 @@ std::wstring NativePathHelpers::get_common_appdata_path()
 std::wstring NativePathHelpers::create_root_tempdir()
 {
     std::wstring default_temp(L"C:/Temp");
-    boost::system::error_code error;
-    if (!boost::filesystem::is_directory(default_temp)) {
-        boost::filesystem::create_directory(default_temp, error);
+    std::error_code error;
+    if (!std::filesystem::is_directory(default_temp)) {
+        std::filesystem::create_directory(default_temp, error);
     }
     return default_temp;
 }

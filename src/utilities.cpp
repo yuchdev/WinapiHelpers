@@ -19,7 +19,7 @@ void helpers::set_memory_profiling()
 #endif
 }
 
-void helpers::set_console_ctrl_handler(ctrl_handler_t ctrl_handler)
+void helpers::set_console_ctrl_handler(PHANDLER_ROUTINE ctrl_handler)
 {
     SetConsoleCtrlHandler(ctrl_handler, TRUE);
 }
