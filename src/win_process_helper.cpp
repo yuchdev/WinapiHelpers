@@ -1,7 +1,7 @@
-#include <winapi_helpers/win_process_helper.h>
-#include <winapi_helpers/win_errors.h>
-#include <winapi_helpers/win_handle_ptr.h>
-#include <winapi_helpers/win_handle_ptr.h>
+#include <winapi-helpers/win_process_helper.h>
+#include <winapi-helpers/win_errors.h>
+#include <winapi-helpers/win_handle_ptr.h>
+#include <winapi-helpers/win_handle_ptr.h>
 #include <Windows.h>
 #include <process.h>
 #include <Tlhelp32.h>

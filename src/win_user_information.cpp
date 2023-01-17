@@ -1,10 +1,10 @@
 #if defined(_WIN32) || defined(_WIN64)
-#include <winapi_helpers/win_user_information.h>
-#include <winapi_helpers/win_errors.h>
-#include <winapi_helpers/win_ptrs.h>
-#include <winapi_helpers/win_handle_ptr.h>
-#include <winapi_helpers/win_special_path_helper.h>
-#include <winapi_helpers/win_service_helper.h>
+#include <winapi-helpers/win_user_information.h>
+#include <winapi-helpers/win_errors.h>
+#include <winapi-helpers/win_ptrs.h>
+#include <winapi-helpers/win_handle_ptr.h>
+#include <winapi-helpers/win_special_path_helper.h>
+#include <winapi-helpers/win_service_helper.h>
 
 #define WIN32_LEAN_AND_MEAN
 #define SECURITY_WIN32

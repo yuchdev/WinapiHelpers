@@ -1,8 +1,8 @@
 ﻿#if defined(_WIN32) || defined(_WIN64)
 
-#include <winapi_helpers/win_registry_helper.h>
-#include <winapi_helpers/win_errors.h>
-#include <winapi_helpers/win_system_information.h>
+#include <winapi-helpers/win_registry_helper.h>
+#include <winapi-helpers/win_errors.h>
+#include <winapi-helpers/win_system_information.h>
 
 #include <map>
 #include <string>

@@ -1,4 +1,4 @@
-#include <winapi_helpers/utilities.h>
+#include <winapi-helpers/utilities.h>
 #include <cassert>
 #include <stdexcept>
 #include <locale>
@@ -90,7 +90,7 @@ std::wstring helpers::string_to_wstring(const std::string &var)
 }
 
 
-#elif defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+#elif defined (__unix__) || (defined (__unix) && defined (__APPLE__))
 
 void helpers::set_memory_profiling()
 {

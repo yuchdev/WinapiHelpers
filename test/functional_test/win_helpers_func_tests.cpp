@@ -1,13 +1,13 @@
 #include <string>
 #include <algorithm>
-#include <winapi_helpers/win_special_path_helper.h>
-#include <winapi_helpers/win_ptrs.h>
-#include <winapi_helpers/win_errors.h>
-#include <winapi_helpers/win_registry_helper.h>
-#include <winapi_helpers/win_service_helper.h>
-#include <winapi_helpers/win_system_information.h>
-#include <winapi_helpers/win_user_information.h>
-#include <winapi_helpers/win_partition_information.h>
+#include <winapi-helpers/win_special_path_helper.h>
+#include <winapi-helpers/win_ptrs.h>
+#include <winapi-helpers/win_errors.h>
+#include <winapi-helpers/win_registry_helper.h>
+#include <winapi-helpers/win_service_helper.h>
+#include <winapi-helpers/win_system_information.h>
+#include <winapi-helpers/win_user_information.h>
+#include <winapi-helpers/win_partition_information.h>
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>

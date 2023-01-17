@@ -1,7 +1,7 @@
 #if defined(_WIN32) || defined(_WIN64)	
-#include <winapi_helpers/win_partition_information.h>
-#include <winapi_helpers/win_errors.h>
-#include <winapi_helpers/utilities.h>
+#include <winapi-helpers/win_partition_information.h>
+#include <winapi-helpers/win_errors.h>
+#include <winapi-helpers/utilities.h>
 
 
 #include <Windows.h>
