@@ -1,0 +1,6 @@
+[requires]
+boost_test/1.74.0@conan/stable
+
+[generators]
+cmake_find_package
+virtualenv
