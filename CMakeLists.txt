@@ -37,7 +37,7 @@ if(WIN32)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
     target_link_libraries(winapi_helpers Secur32)
 else()
-    message(FATAL_ERROR "Non-windows configurations do not supported")
+    message(FATAL_ERROR "Non-windows configurations does not supported")
 endif()
 
 # We use Boost Test, so include it only if Boost root is known

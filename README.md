@@ -47,3 +47,12 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 ```
 cmake --build . --clean-first --config Release --parallel 2 --verbose
 ```
+
+### Using with Conan
+```
+python -m conan install . --profile conan/profiles/windows_msvc_16_release
+call activate.bat
+cmake ..  -DCMAKE_BUILD_TYPE=Release -DCMAKE_MODULE_PATH=%CD:\=/%
+cmake --build . --config Release
+call deactivate.bat
+```
