@@ -29,12 +29,21 @@ Generate CMake config files, and run build using the active toolset (MSVC for Wi
 
 ```
 cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_VERSION=6.1
-cmake --build . --clean-first --config Release --parallel 2 --verbose
+```
+
+### Windows with DLL configuration
+
+```
+cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_VERSION=6.1 -DBUILD_SHARED_LIBS=ON
 ```
 
 ### Linux
 
 ```
 cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
+```
+
+### Build using active toolchain
+```
 cmake --build . --clean-first --config Release --parallel 2 --verbose
 ```
