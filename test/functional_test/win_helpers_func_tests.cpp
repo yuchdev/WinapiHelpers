@@ -11,15 +11,11 @@
 
 #define BOOST_AUTO_TEST_MAIN
 #include <boost/test/unit_test.hpp>
-#include <boost/test/auto_unit_test.hpp>
 
 using namespace helpers;
 using namespace boost::unit_test;
 
 // Functional tests
-/*
-*/
-
 #pragma region GeneralHelpersFunctionalTests
 
 BOOST_AUTO_TEST_SUITE(GeneralHelpersFunctionalTests);
