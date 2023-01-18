@@ -3,11 +3,17 @@ project(winapi_helpers CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(BOOST_MIN_VERSION "1.74.0")
-set(Boost_ADDITIONAL_VERSIONS "1.74.0" "1.74")
-set(Boost_USE_STATIC_LIBS ON)
+if(${USE_BOOST})
+    set(BOOST_MIN_VERSION "1.74.0")
+    set(Boost_ADDITIONAL_VERSIONS "1.74.0" "1.74")
+    set(Boost_USE_STATIC_LIBS ON)
 
-find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
+endif()
+
+message("CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE})
+message("CMAKE_SYSTEM_VERSION="${CMAKE_SYSTEM_VERSION})
+message("CMAKE_MODULE_PATH="${CMAKE_MODULE_PATH})
 
 if(${WIN32})
     set(CMAKE_CXX_FLAGS "/EHsc")
@@ -18,4 +24,7 @@ else()
 endif()
 
 add_subdirectory(src)
-add_subdirectory(test/functional_test)
+
+if(${USE_BOOST})
+    add_subdirectory(test/functional_test)
+endif()
