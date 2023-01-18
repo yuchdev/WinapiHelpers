@@ -1,0 +1,31 @@
+set(SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_bios.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_co_initializer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_one_instance.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_partition_information.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_physical_memory.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_process_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_registry_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_service_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_special_path_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_system_information.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_user_information.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/utilities.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_bios.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_co_initializer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_errors.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_handle_ptr.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_hardware_information.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_native_api_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_one_instance.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_partition_information.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_physical_memory.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_process_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_ptrs.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_registry_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_service_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_special_path_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_system_information.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_user_information.h
+)
