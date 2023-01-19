@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
-project(winapi_helpers CXX)
+set(WINAPI_HELPERS_TARGET winapi_helpers)
+project(${WINAPI_HELPERS_TARGET} CXX)
 
 if(${BOOST_ROOT})
     set(BOOST_MIN_VERSION "1.74.0")
@@ -17,25 +18,26 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 # Create the library target
 include(sources.cmake)
-add_library(winapi_helpers ${SOURCES})
+add_library(${WINAPI_HELPERS_TARGET} ${SOURCES})
 
 # Set public include directories
-target_include_directories(winapi_helpers
+target_include_directories(${WINAPI_HELPERS_TARGET}
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
     PRIVATE
         "${CMAKE_SOURCE_DIR}/include"
 )
 
+# Add cross-compiler features
 # Set C++17 as the standard
-target_compile_features(winapi_helpers PUBLIC cxx_std_17)
+target_compile_features(${WINAPI_HELPERS_TARGET} PUBLIC cxx_std_17)
 
 # Set Windows-specific cinfiguration and dependencies
 if(WIN32)
     set(CMAKE_CXX_FLAGS "/EHsc")
     add_definitions(-D_SCL_SECURE_NO_WARNINGS)
     set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-    target_link_libraries(winapi_helpers Secur32)
+    target_link_libraries(${WINAPI_HELPERS_TARGET} Secur32)
 else()
     message(FATAL_ERROR "Non-windows configurations does not supported")
 endif()
