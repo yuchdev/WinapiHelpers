@@ -52,6 +52,15 @@ public:
     /// Includes terminating slash
     static std::wstring get_system_temp_path();
 
+#if 1
+    /// @brief: User desktop path
+    /// Includes terminating slash
+    std::wstring get_desktop_wpath() {return std::wstring{};}
+
+    /// @brief: The file system directory that contains application data for all users.
+    /// Includes terminating slash
+    std::wstring get_common_appdata_wpath() {return std::wstring{};}
+#endif
     //////////////////////////////////////////////////////////////////////////
     // "Append to" methods
 

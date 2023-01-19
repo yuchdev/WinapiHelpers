@@ -9,7 +9,7 @@
 #pragma once
 #include <map>
 #include <functional>
-#include <helpers/is_callable.h>
+#include <winapi-helpers/is_callable.h>
 
 namespace helpers {
 

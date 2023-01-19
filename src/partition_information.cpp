@@ -1,6 +1,6 @@
 #if defined(_WIN32) || defined(_WIN64)	
 #include <winapi-helpers/partition_information.h>
-#include <winapi-helpers/errors.h>
+#include <winapi-helpers/win_errors.h>
 #include <winapi-helpers/utilities.h>
 
 
@@ -16,24 +16,30 @@
 
 using namespace helpers;
 
-std::map<int, NativePartititonInformation::PlacementType> NativePartititonInformation::system_codes_2_placement_type_{
-    { DRIVE_UNKNOWN, NativePartititonInformation::UnknownPlacement },
-    { DRIVE_NO_ROOT_DIR, NativePartititonInformation::NoRootDir },
-    { DRIVE_REMOVABLE, NativePartititonInformation::RemovebleDisk },
-    { DRIVE_FIXED, NativePartititonInformation::FixedDisk },
-    { DRIVE_REMOTE, NativePartititonInformation::NetworkDisk },
-    { DRIVE_CDROM, NativePartititonInformation::CDROM },
-    { DRIVE_RAMDISK, NativePartititonInformation::RamDisk }
+std::map<int, PartititonInformation::PlacementType> PartititonInformation::system_codes_2_placement_type_{
+    { DRIVE_UNKNOWN, PartititonInformation::UnknownPlacement },
+    { DRIVE_NO_ROOT_DIR, PartititonInformation::NoRootDir },
+    { DRIVE_REMOVABLE, PartititonInformation::RemovebleDisk },
+    { DRIVE_FIXED, PartititonInformation::FixedDisk },
+    { DRIVE_REMOTE, PartititonInformation::NetworkDisk },
+    { DRIVE_CDROM, PartititonInformation::CDROM },
+    { DRIVE_RAMDISK, PartititonInformation::RamDisk }
 };
 
 
-NativePartititonInformation::NativePartititonInformation()
+PartititonInformation& PartititonInformation::instance()
+{
+    static PartititonInformation single_partition_information;
+    return single_partition_information;
+}
+
+PartititonInformation::PartititonInformation()
 {
     collect_partititon_information();
 }
 
-std::vector<NativePartititonInformation::NativePartititon> 
-NativePartititonInformation::enumerate_partititons() const
+std::vector<PartititonInformation::NativePartititon> 
+PartititonInformation::enumerate_partititons() const
 {
     // read lock
     std::shared_lock<std::shared_mutex> lk(m_);
@@ -44,8 +50,8 @@ NativePartititonInformation::enumerate_partititons() const
     return std::move(partitions);
 }
 
-std::unique_ptr<NativePartititonInformation::NativePartititon> 
-NativePartititonInformation::get_file_partition_info(const std::string& filepath) const
+std::unique_ptr<PartititonInformation::NativePartititon> 
+PartititonInformation::get_file_partition_info(const std::string& filepath) const
 {
     if (filepath.empty() || !std::isalpha(filepath[0])) {
         return std::make_unique<NativePartititon>();
@@ -114,7 +120,7 @@ void NativePartititonInformation::collect_partititon_information()
     unrecognized_partititons_.push_back(l);
 }
 #else
-void NativePartititonInformation::collect_partititon_information()
+void PartititonInformation::collect_partititon_information()
 {
     char disk_windows_pattern[] = "X:\\";
     char current_drive_letter = 'A';
@@ -167,7 +173,7 @@ void NativePartititonInformation::collect_partititon_information()
 }
 #endif
 
-int NativePartititonInformation::get_physical_drive_number(char windows_drive_letter) const
+int PartititonInformation::get_physical_drive_number(char windows_drive_letter) const
 {
     static const size_t drive_letter_position = 4;
     wchar_t system_partition_name_pattern[] = L"\\\\.\\X:";
@@ -204,8 +210,8 @@ int NativePartititonInformation::get_physical_drive_number(char windows_drive_le
 
 }
 
-helpers::NativePartititonInformation::PlacementType 
-NativePartititonInformation::get_drive_placement(const std::wstring& windows_drive_root) const
+helpers::PartititonInformation::PlacementType 
+PartititonInformation::get_drive_placement(const std::wstring& windows_drive_root) const
 {
     if (windows_drive_root.size() != 3) {
         assert(false);
@@ -219,8 +225,8 @@ NativePartititonInformation::get_drive_placement(const std::wstring& windows_dri
     return (*it).second;
 }
 
-NativePartititonInformation::DiskType 
-NativePartititonInformation::get_drive_type(int physical_drive_number) const
+PartititonInformation::DiskType 
+PartititonInformation::get_drive_type(int physical_drive_number) const
 {
     static const size_t drive_number_position = 17;
     wchar_t physical_drive_pattern[] = L"\\\\?\\PhysicalDriveX";
@@ -261,14 +267,14 @@ NativePartititonInformation::get_drive_type(int physical_drive_number) const
     }
 }
 
-std::vector<NativePartititonInformation::NativePartititon>
-NativePartititonInformation::enumerate_drive_partititons(int drive_index) const
+std::vector<PartititonInformation::NativePartititon>
+PartititonInformation::enumerate_drive_partititons(int drive_index) const
 {
     auto it = physical_disk_info_.find(drive_index);
     if (physical_disk_info_.end() != it) {
         return (*it).second;
     }
-    return std::vector<NativePartititonInformation::NativePartititon>{};
+    return std::vector<PartititonInformation::NativePartititon>{};
 }
 
 #ifdef PARTITIONS_MOCK
@@ -277,7 +283,7 @@ const std::vector<int> NativePartititonInformation::get_physical_drives() const
     return std::move(std::vector<int>{ 0, 1, 2, 3 });
 }
 #else
-const std::vector<int> NativePartititonInformation::get_physical_drives() const
+const std::vector<int> PartititonInformation::get_physical_drives() const
 {
     std::set<int> drive_indexes;
     for (const auto& part_info : partititon_info_) {
@@ -286,7 +292,7 @@ const std::vector<int> NativePartititonInformation::get_physical_drives() const
     return std::move(std::vector<int>{drive_indexes.begin(), drive_indexes.end()});
 }
 
-std::string NativePartititonInformation::get_system_drive()
+std::string PartititonInformation::get_system_drive()
 {
     static const char* drive_regex_str = R"(^[a-zA-Z]:\\$)";
     std::regex drive_regex(drive_regex_str);
@@ -307,7 +313,7 @@ std::string NativePartititonInformation::get_system_drive()
     return std::move(system_drive);
 }
 
-std::string helpers::NativePartititonInformation::get_volume_information(const std::string& volume_index, 
+std::string helpers::PartititonInformation::get_volume_information(const std::string& volume_index, 
     std::string& volume_name_out, std::string& volume_id_out, std::string& filesystem_name_out)
 {
     const size_t path_size = MAX_PATH + 1;

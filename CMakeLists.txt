@@ -10,12 +10,12 @@ message("CMAKE_C_COMPILER=" ${CMAKE_C_COMPILER})
 message("CMAKE_CXX_COMPILER=" ${CMAKE_CXX_COMPILER})
 
 # ---- Frameworks and components ----
-if(${BOOST_ROOT})
-    set(BOOST_MIN_VERSION "1.74.0")
-    set(Boost_ADDITIONAL_VERSIONS "1.74.0" "1.74")
-    set(Boost_USE_STATIC_LIBS ON)
-    find_package(Boost COMPONENTS unit_test_framework REQUIRED)
-endif()
+
+set(BOOST_MIN_VERSION "1.74.0")
+set(Boost_ADDITIONAL_VERSIONS "1.74.0" "1.74")
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS unit_test_framework system chrono date_time thread filesystem atomic REQUIRED)
+
 
 # ---- Target ----
 # Check if building a static or shared library
@@ -49,6 +49,7 @@ target_include_directories(${WINAPI_HELPERS_TARGET}
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
     PRIVATE
         "${CMAKE_SOURCE_DIR}/include"
+        ${Boost_INCLUDE_DIRS}
 )
 
 # ---- Library dependencies ----

@@ -11,7 +11,7 @@ namespace helpers {
 
 /// @brief Windows-native information about logical partitions and all data associated with them:
 /// Physical drive index, type of disk, type of placement (fixed/external/network/etc...)
-class NativePartititonInformation{
+class PartititonInformation{
 public:
 
     enum PlacementType {
@@ -62,12 +62,45 @@ public:
         std::string filesystem_name;
     };
 
+    /// @brief Basic portable partition-associated info
+    struct PortablePartititon
+    {
+        PortablePartititon() = default;
+        ~PortablePartititon() = default;
+        PortablePartititon(const PortablePartititon&) = default;
+
+        /// drive letter or mounting point
+        std::wstring root;
+
+        /// Up to 0, physical drive in system up to 0
+        /// -1 is invalid value
+        int drive_number = -1;
+
+        /// see enum
+        PlacementType placement_type = UnknownPlacement;
+
+        /// see enum
+        DiskType disk_type = UnknownType;
+
+        /// Volume name if exist
+        std::string volume_name;
+
+        /// Volume ID , string of numbers
+        std::string volume_id;
+
+        /// Filesystem name output, e.g. "NTFS"
+        std::string filesystem_name;
+    };
+
     /// @brief partition information collected here. C-tor does not throw, but may work long time
     /// Do not use in in the GUI thread
-    NativePartititonInformation();
+    PartititonInformation();
 
     /// @brief Default, just satisfy compiler
-    ~NativePartititonInformation() = default;
+    ~PartititonInformation() = default;
+
+    /// @brief Construct on the first call, return "Meyers singleton" afterwards
+    static PartititonInformation& instance();
 
     /// @brief Get the current 'slice' of partition information
     /// If the partition information is updated during reading, it won't be returned

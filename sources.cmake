@@ -12,10 +12,6 @@ set(WINAPI_HELPERS_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/system_information.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/user_information.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/utilities.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/sqlite3_helper.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/is_callable.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/thread_pool.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/uint8_codecvt.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/bios.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/co_initializer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/dynamic_handler_map.h
