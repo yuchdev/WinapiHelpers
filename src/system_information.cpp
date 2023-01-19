@@ -1,5 +1,5 @@
 #if defined(_WIN32) || defined(_WIN64)
-#include <winapi-helpers/win_system_information.h>
+#include <winapi-helpers/system_information.h>
 #include <winapi-helpers/win_errors.h>
 
 #include <sstream>

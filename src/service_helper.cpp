@@ -1,7 +1,7 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <winapi-helpers/win_errors.h>
-#include <winapi-helpers/win_service_helper.h>
-#include <winapi-helpers/win_handle_ptr.h>
+#include <winapi-helpers/service_helper.h>
+#include <winapi-helpers/handle_ptr.h>
 
 #include <tlhelp32.h>
 #include <stdexcept>

@@ -1,7 +1,7 @@
 #if defined(_WIN32) || defined(_WIN64)
-#include <winapi-helpers/win_physical_memory.h>
-#include <winapi-helpers/win_native_api_helper.h>
-#include <winapi-helpers/win_handle_ptr.h>
+#include <winapi-helpers/physical_memory.h>
+#include <winapi-helpers/native_api_helper.h>
+#include <winapi-helpers/handle_ptr.h>
 
 #include <memory>
 #include <system_error>

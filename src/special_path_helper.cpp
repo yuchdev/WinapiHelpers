@@ -1,7 +1,7 @@
 #if defined(_WIN32) || defined(_WIN64)
 
-#include <winapi-helpers/win_special_path_helper.h>
-#include <winapi-helpers/win_service_helper.h>
+#include <winapi-helpers/special_path_helper.h>
+#include <winapi-helpers/service_helper.h>
 #include <filesystem>
 
 #include <Windows.h>

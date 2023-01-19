@@ -1,5 +1,5 @@
 #if defined(_WIN32) || defined(_WIN64)
-#include <winapi-helpers/win_one_instance.h>
+#include <winapi-helpers/one_instance.h>
 #include <Windows.h>
 #include <tchar.h>
 

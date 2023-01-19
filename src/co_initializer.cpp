@@ -1,6 +1,6 @@
 #if defined(_WIN32) || defined(_WIN64)
 
-#include <winapi-helpers/win_co_initializer.h>
+#include <winapi-helpers/co_initializer.h>
 #include <system_error>
 
 using namespace helpers;
