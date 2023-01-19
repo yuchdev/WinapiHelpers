@@ -45,7 +45,7 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
 
 ### Build using active toolchain
 ```
-cmake --build . --clean-first --config Release --parallel 2 --verbose
+cmake --build . --clean-first --config Debug --parallel 2 --verbose
 ```
 
 ### Using with Conan
