@@ -32,7 +32,7 @@ add_library(${WINAPI_HELPERS_TARGET} ${SOURCES})
 target_compile_features(${WINAPI_HELPERS_TARGET} PUBLIC cxx_std_17)
 
 # ---- System-specific options ----
-# Set Exception handling as exceptons, suppress MSVC security warnings, and use Visual Studio Folders
+# Set Exception handling as exceptions, suppress MSVC security warnings, and use Visual Studio Folders
 if(WIN32)
     set(CMAKE_CXX_FLAGS "/EHsc")
     add_definitions(-D_SCL_SECURE_NO_WARNINGS)
@@ -58,6 +58,6 @@ if(${BOOST_ROOT})
     add_subdirectory(test/functional_test)
 endif()
 
-# ---- Additional bulid steps ----
+# ---- Additional build steps ----
 
 # ---- Install rules ----
