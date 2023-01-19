@@ -1,4 +1,4 @@
-set(SOURCES
+set(WINAPI_HELPERS_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win_bios.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/src/win_co_initializer.cpp

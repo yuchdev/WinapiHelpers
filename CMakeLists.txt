@@ -19,11 +19,11 @@ endif()
 # Check if building a static or shared library
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
-# Load SOURCES
+# Load WINAPI_HELPERS_SOURCES
 include(sources.cmake)
 
 # Create the library target
-add_library(${WINAPI_HELPERS_TARGET} ${SOURCES})
+add_library(${WINAPI_HELPERS_TARGET} ${WINAPI_HELPERS_SOURCES})
 
 # ---- Global properties ----
 
