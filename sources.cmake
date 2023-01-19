@@ -1,31 +1,31 @@
 set(WINAPI_HELPERS_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_bios.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_co_initializer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_one_instance.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_partition_information.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_physical_memory.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_process_helper.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_registry_helper.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_service_helper.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_special_path_helper.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_system_information.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/win_user_information.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/bios.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/co_initializer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/one_instance.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/partition_information.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/physical_memory.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/process_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/registry_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/service_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/special_path_helper.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/system_information.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/user_information.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/utilities.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_bios.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_co_initializer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/bios.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/co_initializer.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_errors.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_handle_ptr.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_hardware_information.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_native_api_helper.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_one_instance.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_partition_information.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_physical_memory.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_process_helper.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_ptrs.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_registry_helper.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_service_helper.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_special_path_helper.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_system_information.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_user_information.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/handle_ptr.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/hardware_information.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/native_api_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/one_instance.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/partition_information.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/physical_memory.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/process_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/ptrs.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/registry_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/service_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/special_path_helper.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/system_information.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/user_information.h
 )
