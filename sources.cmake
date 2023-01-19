@@ -14,6 +14,8 @@ set(WINAPI_HELPERS_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/utilities.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/bios.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/co_initializer.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/dynamic_handler_map.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/md5.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_errors.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/handle_ptr.h
         ${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/hardware_information.h
