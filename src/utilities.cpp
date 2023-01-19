@@ -1,5 +1,4 @@
 #include <winapi-helpers/utilities.h>
-#include <cassert>
 #include <stdexcept>
 #include <locale>
 #include <codecvt>
@@ -29,7 +28,7 @@ std::string helpers::wstring_to_utf8(const std::wstring &var)
 {
     static std::locale loc("");
     try {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> cv;
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> cv;
         return cv.to_bytes(var);
     }
     catch (const std::system_error& e) {
