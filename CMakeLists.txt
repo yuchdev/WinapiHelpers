@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.20)
 set(WINAPI_HELPERS_TARGET winapi_helpers)
 project(${WINAPI_HELPERS_TARGET} CXX)
 
+include(${CMAKE_SOURCE_DIR}/cmake/lint.cmake)
+
 message("BUILD_SHARED_LIBS=" ${BUILD_SHARED_LIBS})
 message("CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
 message("CMAKE_SYSTEM_VERSION=" ${CMAKE_SYSTEM_VERSION})
@@ -18,9 +20,6 @@ find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS unit_test_framework system ch
 
 
 # ---- Target ----
-# Check if building a static or shared library
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-
 # Load WINAPI_HELPERS_SOURCES
 include(sources.cmake)
 
@@ -62,5 +61,11 @@ if(${BOOST_ROOT})
 endif()
 
 # ---- Additional build steps ----
+message("Running cppcheck on ${WINAPI_HELPERS_TARGET}")
+run_cppcheck(
+        include_dirs "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        sources "${WINAPI_HELPERS_SOURCES}"
+)
+
 
 # ---- Install rules ----
