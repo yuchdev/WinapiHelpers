@@ -61,11 +61,16 @@ if(${BOOST_ROOT})
 endif()
 
 # ---- Additional build steps ----
-message("Running cppcheck on ${WINAPI_HELPERS_TARGET}")
-run_cppcheck(
-        include_dirs "${CMAKE_CURRENT_SOURCE_DIR}/include"
-        sources "${WINAPI_HELPERS_SOURCES}"
-)
+set(CXX_CPPCHECK "cppcheck")
+if (CMAKE_CXX_CPPCHECK)
+    list(
+            APPEND CMAKE_CXX_CPPCHECK
+            "--enable=warning,performance,portability"
+            "--inconclusive"
+            "--force"
+            "--inline-suppr"
+    )
+endif()
 
 
 # ---- Install rules ----
