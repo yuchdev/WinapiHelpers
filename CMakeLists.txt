@@ -3,8 +3,6 @@ cmake_minimum_required(VERSION 3.20)
 set(WINAPI_HELPERS_TARGET winapi_helpers)
 project(${WINAPI_HELPERS_TARGET} CXX)
 
-include(${CMAKE_SOURCE_DIR}/cmake/lint.cmake)
-
 message("BUILD_SHARED_LIBS=" ${BUILD_SHARED_LIBS})
 message("CMAKE_BUILD_TYPE=" ${CMAKE_BUILD_TYPE})
 message("CMAKE_SYSTEM_VERSION=" ${CMAKE_SYSTEM_VERSION})
@@ -18,8 +16,10 @@ set(Boost_ADDITIONAL_VERSIONS "1.74.0" "1.74")
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS unit_test_framework system chrono date_time thread filesystem atomic REQUIRED)
 
-
 # ---- Target ----
+# Check if building a static or shared library
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+
 # Load WINAPI_HELPERS_SOURCES
 include(sources.cmake)
 
@@ -53,8 +53,6 @@ target_include_directories(${WINAPI_HELPERS_TARGET}
 
 # ---- Library dependencies ----
 target_link_libraries(${WINAPI_HELPERS_TARGET} Secur32)
-add_subdirectory(3rd_party/zlib)
-add_subdirectory(3rd_party/sqlite3)
 
 # ---- Enable testing ----
 # We use Boost Test, so include it only if Boost root is known
@@ -63,16 +61,5 @@ if(${BOOST_ROOT})
 endif()
 
 # ---- Additional build steps ----
-set(CXX_CPPCHECK "cppcheck")
-if (CMAKE_CXX_CPPCHECK)
-    list(
-            APPEND CMAKE_CXX_CPPCHECK
-            "--enable=warning,performance,portability"
-            "--inconclusive"
-            "--force"
-            "--inline-suppr"
-    )
-endif()
-
 
 # ---- Install rules ----
