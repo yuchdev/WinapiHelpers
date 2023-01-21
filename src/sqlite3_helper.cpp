@@ -6,7 +6,7 @@
  * Unauthorized copying of this file, via any medium is strictly prohibited.
  */
 
-#include <helpers/sqlite3_helper.h>
+#include <winapi-helpers/sqlite3_helper.h>
 #include <sqlite3.h>
 
 using namespace helpers;
