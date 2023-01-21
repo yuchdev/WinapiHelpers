@@ -47,7 +47,7 @@ target_include_directories(${WINAPI_HELPERS_TARGET}
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
     PRIVATE
-        "${CMAKE_SOURCE_DIR}/3rd_party/sqlite3"
+        "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/sqlite3"
         ${Boost_INCLUDE_DIRS}
 )
 
