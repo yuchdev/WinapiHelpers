@@ -5,6 +5,7 @@ set(WINAPI_HELPERS_CPP
 	${CMAKE_CURRENT_SOURCE_DIR}/src/one_instance.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/partition_information.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/physical_memory.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/sqlite3_helper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/process_helper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/registry_helper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/service_helper.cpp
