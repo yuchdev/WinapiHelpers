@@ -1,97 +1,67 @@
 #pragma once
-#if defined(_WIN32) || defined(_WIN64)
-
 #include <string>
+#include <memory>
 
-namespace helpers{
+// The header contains system-independent information about current (logged in) user
 
+namespace helpers {
 
-/// @brief Collect system-dependent information about current (logged in) user
-/// from WinAPI calls GetUserName(), GetUserNameEx(), GetTokenInformation(), ConvertSidToStringSid()
-/// Re-use NativePathHelpers for user-related directories
-class NativeUserInformation {
+class NativeUserInformation;
+
+/// @brief Storage for all available current (logged-in) user information in system-independent format
+/// Some paths are system-specific, Like Windows Local or Roaming profile
+/// They exist like methods but return "" under platforms where they don't make sense
+class UserInformation {
 public:
 
-    /// Collect available current (logged in) user information
-    NativeUserInformation() noexcept;
+    /// @brief Construct on the first call, return "Meyers singleton" afterwards
+    static UserInformation& instance();
 
     /// @brief Make compiler happy
-    ~NativeUserInformation() = default;
+    ~UserInformation() = default;
 
     /// @brief Get user name in "pretty readable" format
-    /// Login names can be up to 104 characters!
     std::string get_user_name() const;
 
-    /// @brief A GUID string that the IIDFromString() function returns, for example, {4fa050f0-f561-11cf-bdd9-00aa003a77b6}
+    /// @brief Get user name GUID format
+    /// @return: GUID or user name or empty string
     /// NOTE! Provide simple display name if the GUID is unavailable, it happen often
     std::string get_user_guid() const;
 
-    /// @brief User NTSecurity ID
+    /// @brief Get user Windows SID
+    /// @return: SID or empty string
     std::string get_user_sid() const;
 
-    /// @brief User home directory path
+    /// @brief Get user home directory
     std::wstring get_home_path() const;
 
     /// @brief User Local profile
+    /// @return: Windows Local profile path or empty string
     std::wstring get_local_path() const;
 
     /// @brief User Roaming profile
+    /// @return: Windows Roaming profile path or empty string
     std::wstring get_roaming_path() const;
 
-    /// @brief In case of unsuccessful retrieval GetLastError 
-    /// in a string format, for the notifying holding class
+    /// @brief In case of unsuccessful retrieval last error 
+    /// in a string format, for notifying the caller
     std::string get_last_error() const;
 
     /// @brief Return true if all user information is retrieved successfully
-    bool info_retrived_successfully() const 
-    {
-        return retrived_successfully_; 
-    }
+    bool info_retrived_successfully() const;
+
+protected:
+
+    /// Polling all native and cross-platform sources for user-related information 
+    /// Never create directly, never copy
+    UserInformation();
+    UserInformation(const UserInformation&) = delete;
+    UserInformation& operator=(const UserInformation&) = delete;
 
 private:
 
-    /// Get information abiut user with GetUserNameEx()
-    /// // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724435%28v=vs.85%29.aspx
-    /// param extended_name_id: cast to EXTENDED_NAME_FORMAT enumeration
-    std::string get_win_user_info(int extended_name_id);
-    
-    /// Get information abiut user with GetUserName()
-    // https://msdn.microsoft.com/en-us/library/windows/desktop/ms724432(v=vs.85).aspx
-    std::string get_win_user_name();
-
-    /// Find out current user SID from the user-space process
-    std::string get_current_user_sid();
-
-    /// Logged in user name
-    std::string user_name_;
-
-    /// Logged in user GUID OR display name if the GUID is unavailable
-    std::string user_guid_;
-
-    /// Logged in user SID
-    std::string user_sid_;
-
-    /// User home directory path
-    std::wstring home_path_;
-
-    /// Local profile
-    std::wstring local_path_;
-
-    /// Roaming profile
-    std::wstring roaming_path_;
-
-    /// GetLastError in string format, for the notifying holding class
-    std::string last_error_;
-
-    /// Class state flag
-    // If retrived_successfully_ == false check get_last_error() for last problem.
-    /// NativeUserInformation exists even if not all information has been retrieved
-    bool retrived_successfully_ = true;
-
-    /// Login names can be up to 104 characters!
-    /// http://technet.microsoft.com/en-us/library/bb726984.aspx
-    static const size_t logon_name_size;
+    // System-dependent information about OS name, version, build etc
+    std::unique_ptr<NativeUserInformation> native_user_info_;
 };
 
-} // namespace helpers
-#endif
+} // namespace panic

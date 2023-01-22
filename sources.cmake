@@ -14,6 +14,7 @@ set(WINAPI_HELPERS_CPP
   ${CMAKE_CURRENT_SOURCE_DIR}/src/utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/win_partition_information.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/win_special_path_helper.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/win_user_information.cpp
 )
 
 set(WINAPI_HELPERS_H
@@ -36,8 +37,9 @@ set(WINAPI_HELPERS_H
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/service_helper.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/special_path_helper.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_special_path_helper.h
-	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/system_information.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/user_information.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/system_information.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_user_information.h
 )
 set(WINAPI_HELPERS_SOURCES 
 	${WINAPI_HELPERS_CPP} 
