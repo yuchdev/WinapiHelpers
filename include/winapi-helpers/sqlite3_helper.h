@@ -1,11 +1,3 @@
-/* 2017-2020 WEBGEARS SERVICES LIMITED (c) All Rights Reserved. 
- * Proprietary and confidential.
- * The Software and any accompanying documentation are copyrighted and protected 
- * by copyright laws and international copyright treaties, as well as other 
- * intellectual property laws and treaties.
- * Unauthorized copying of this file, via any medium is strictly prohibited.
- */
-
 #pragma once
 
 typedef int(*sqlite3_callback)(void*, int, char**, char**);
