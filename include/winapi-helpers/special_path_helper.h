@@ -1,95 +1,37 @@
-#pragma once
-#if defined(_WIN32) || defined(_WIN64)
+/* 2017-2020 WEBGEARS SERVICES LIMITED (c) All Rights Reserved. 
+ * Proprietary and confidential.
+ * The Software and any accompanying documentation are copyrighted and protected 
+ * by copyright laws and international copyright treaties, as well as other 
+ * intellectual property laws and treaties.
+ * Unauthorized copying of this file, via any medium is strictly prohibited.
+ */
 
+#pragma once
 #include <string>
 
-namespace helpers {
+// 
 
-/// @brief Place here Windows-related special directory paths (temp, desktop etc)
-/// All paths include terminating slash!
-class NativePathHelpers
-{
-public:
+/// @brief Place here system-independent special directory paths (temp, desktop etc)
+namespace helpers {
 
     /// @brief: User home directory path
     /// Includes terminating slash
-    /// @return: home path or "" if unable to detect
-    static std::wstring get_home_path();
+    std::wstring get_home_wpath();
 
-    /// @brief: User AppData/Local/Temp directory path
+    /// @brief: User temp directory path
     /// Includes terminating slash
-    /// @return: TEMP path or "" if unable to detect
-    static std::wstring get_tempdir_path();
+    std::wstring get_tempdir_wpath();
 
-    /// @brief: Common (not user!) desktop path
+    /// @brief: System-wide temp directory path
     /// Includes terminating slash
-    static std::wstring get_desktop_path();
+    std::wstring get_system_temp_wpath();
 
-    /// @brief: User AppData/Local directory path
-    /// Includes terminating slash
-    /// @return: AppData/Local path or "" if unable to detect
-    static std::wstring get_local_appdata_path();
-
-    /// @brief: User AppData/Roaming directory path
-    /// Includes terminating slash
-    /// @return: AppData/Roaming path or "" if unable to detect
-    static std::wstring get_roaming_appdata_path();
-
-    /// @brief: Common AppData directory path
-    /// Includes terminating slash
-    /// @return: Common AppData path or "" if unable to detect
-    static std::wstring get_common_appdata_path();
-
-    /// @brief: Windows root directory path
-    /// Includes terminating slash
-    static std::wstring get_windows_path();
-
-    /// @brief: Directory, where service can write log file
-    /// Includes terminating slash
-    static std::wstring get_service_log_path();
-
-    /// @brief: Windows temporary directory path
-    /// Includes terminating slash
-    static std::wstring get_system_temp_path();
-
-#if 1
     /// @brief: User desktop path
     /// Includes terminating slash
-    std::wstring get_desktop_wpath() {return std::wstring{};}
+    std::wstring get_desktop_wpath();
 
     /// @brief: The file system directory that contains application data for all users.
     /// Includes terminating slash
-    std::wstring get_common_appdata_wpath() {return std::wstring{};}
-#endif
-    //////////////////////////////////////////////////////////////////////////
-    // "Append to" methods
-
-    /// @brief Return string (path) which is added to C:/...AppData/Local prefix 
-    /// or empty string if path does not exist
-    static std::wstring append_to_local(const wchar_t* path);
-
-    /// @brief Return string (path) which is added to C:/...AppData/Roamong prefix
-    /// or empty string if path does not exist
-    static std::wstring append_to_roaming(const wchar_t* path);
-
-    /// @brief Return string (path) which is added to C:/.../$USERNAME prefix
-    /// or empty string if path does not exist
-    static std::wstring append_to_home(const wchar_t* path);
-
-private:
-
-    /// @brief Get special directory path
-    /// @param special_path_type: macros type see in file "shlobj.h", e.g. CSIDL_APPDATA
-    /// @param ignore_system_user_check: normally We are not interested in AppData of SYSTEM user
-    /// This flag explicitly allows us to get AppData of SYSTEM in specual cases
-    /// return empty string if path does not exist
-    static std::wstring get_appdata_path(int special_path_type, bool ignore_system_user_check = false);
-
-    /// @brief Create Temp directory on the root disk
-    static std::wstring create_root_tempdir();
-
-};
+    std::wstring get_common_appdata_wpath();
 
 } // namespace helpers
-
-#endif // defined(_WIN32) || defined(_WIN64)
