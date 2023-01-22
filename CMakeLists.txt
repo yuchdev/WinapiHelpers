@@ -10,7 +10,6 @@ message("CMAKE_C_COMPILER=" ${CMAKE_C_COMPILER})
 message("CMAKE_CXX_COMPILER=" ${CMAKE_CXX_COMPILER})
 
 # ---- Frameworks and components ----
-
 set(BOOST_MIN_VERSION "1.74.0")
 set(Boost_ADDITIONAL_VERSIONS "1.74.0" "1.74")
 set(Boost_USE_STATIC_LIBS ON)
@@ -44,10 +43,10 @@ endif()
 
 # ---- Include directories ----
 target_include_directories(${WINAPI_HELPERS_TARGET}
-    PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}/include"
-    PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/sqlite3"
+PUBLIC
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party/sqlite3"
         ${Boost_INCLUDE_DIRS}
 )
 

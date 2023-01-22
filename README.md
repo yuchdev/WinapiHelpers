@@ -46,7 +46,7 @@ cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_SYSTEM_VERS
 ### Windows with DLL configuration
 
 ```
-cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Debug -DBOOST_ROOT=C:/boost -DBUILD_SHARED_LIBS=ON
+cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON
 ```
 
 ### Linux
