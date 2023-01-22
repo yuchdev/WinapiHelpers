@@ -1,0 +1,82 @@
+#pragma once
+#if defined(_WIN32) || defined(_WIN64)
+
+#include <string>
+
+namespace helpers {
+
+/// @brief Place here Windows-related special directory paths (temp, desktop etc)
+/// All paths include terminating slash!
+class NativePathHelpers
+{
+public:
+
+    /// @brief: User home directory path
+    /// Includes terminating slash
+    /// @return: home path or "" if unable to detect
+    static std::wstring get_home_wpath();
+
+    /// @brief: User AppData/Local/Temp directory path
+    /// Includes terminating slash
+    /// @return: TEMP path or "" if unable to detect
+    static std::wstring get_tempdir_wpath();
+
+    /// @brief: Common (not user!) desktop path
+    /// Includes terminating slash
+    static std::wstring get_desktop_wpath();
+
+    /// @brief: User AppData/Local directory path
+    /// Includes terminating slash
+    /// @return: AppData/Local path or "" if unable to detect
+    static std::wstring get_local_appdata_wpath();
+
+    /// @brief: User AppData/Roaming directory path
+    /// Includes terminating slash
+    /// @return: AppData/Roaming path or "" if unable to detect
+    static std::wstring get_roaming_appdata_wpath();
+
+    /// @brief: Common AppData directory path
+    /// Includes terminating slash
+    /// @return: Common AppData path or "" if unable to detect
+    static std::wstring get_common_appdata_wpath();
+
+    /// @brief: Windows root directory path
+    /// Includes terminating slash
+    static std::wstring get_windows_wpath();
+
+    /// @brief: Windows temporary directory path
+    /// Includes terminating slash
+    static std::wstring get_system_temp_wpath();
+
+    //////////////////////////////////////////////////////////////////////////
+    // "Append to" methods
+
+    /// @brief Return string (path) which is added to C:/...AppData/Local prefix 
+    /// or empty string if path does not exist
+    static std::wstring append_to_local(const wchar_t* path);
+
+    /// @brief Return string (path) which is added to C:/...AppData/Roamong prefix
+    /// or empty string if path does not exist
+    static std::wstring append_to_roaming(const wchar_t* path);
+
+    /// @brief Return string (path) which is added to C:/.../$USERNAME prefix
+    /// or empty string if path does not exist
+    static std::wstring append_to_home(const wchar_t* path);
+
+private:
+
+    /// @brief Get special directory path
+    /// @param special_path_type: macros type see in file "shlobj.h", e.g. CSIDL_APPDATA
+    /// @param ignore_system_user_check: normally We are not interested in AppData of SYSTEM user
+    /// This flag explicitly allows us to get AppData of SYSTEM in specual cases
+    /// return empty string if path does not exist
+    static std::wstring get_appdata_path(int special_path_type, bool ignore_system_user_check = false);
+
+    /// @brief Create Temp directory on the root disk
+    static std::wstring create_root_tempdir();
+
+};
+
+} // namespace helpers
+
+#endif // defined(_WIN32) || defined(_WIN64)
