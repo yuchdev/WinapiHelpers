@@ -28,24 +28,30 @@ Generate CMake config files, and run build using the active toolset (MSVC for Wi
 ### Windows
 
 ```
-cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_VERSION=6.1
+cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_SYSTEM_VERSION=6.1
+```
+
+### Windows with custom Boost location
+
+```
+cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Debug -DBOOST_ROOT=C:/boost
 ```
 
 ### Windows with DLL configuration
 
 ```
-cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_SYSTEM_VERSION=6.1 -DBUILD_SHARED_LIBS=ON
+cmake .. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Debug -DBOOST_ROOT=C:/boost -DBUILD_SHARED_LIBS=ON
 ```
 
 ### Linux
 
 ```
-cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Debug
 ```
 
 ### Build using active toolchain
 ```
-cmake --build . --clean-first --config Debug --parallel 2 --verbose
+cmake --build . --config Debug --parallel 2 --verbose
 ```
 
 ### Using with Conan

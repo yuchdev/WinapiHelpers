@@ -52,7 +52,11 @@ target_include_directories(${WINAPI_HELPERS_TARGET}
 )
 
 # ---- Library dependencies ----
-target_link_libraries(${WINAPI_HELPERS_TARGET} Secur32 sqlite3)
+target_link_libraries(${WINAPI_HELPERS_TARGET} 
+PRIVATE
+    Secur32 
+    sqlite3
+)
 add_subdirectory(3rd_party/sqlite3)
 
 # ---- Enable testing ----
