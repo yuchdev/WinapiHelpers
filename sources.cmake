@@ -4,6 +4,7 @@ set(WINAPI_HELPERS_CPP
 	${CMAKE_CURRENT_SOURCE_DIR}/src/co_initializer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/one_instance.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/partition_information.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/win_partition_information.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/physical_memory.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/sqlite3_helper.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/process_helper.cpp
@@ -26,6 +27,7 @@ set(WINAPI_HELPERS_H
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/native_api_helper.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/one_instance.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/partition_information.h
+	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/win_partition_information.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/physical_memory.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/process_helper.h
 	${CMAKE_CURRENT_SOURCE_DIR}/include/winapi-helpers/ptrs.h
