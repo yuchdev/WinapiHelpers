@@ -9,7 +9,7 @@
 #include <Windows.h>
 #include <Ras.h>
 #include <RasError.h>
-#include <winapi-helpers/ptrs.h>
+#include <winapi-helpers/win_ptrs.h>
 
 // Windows and RAS wrapper objects (exception, error message formatting etc)
 
