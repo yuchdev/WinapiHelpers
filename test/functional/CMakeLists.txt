@@ -1,7 +1,7 @@
 set(TARGET winapi_helpers_functional_test)
 
 file(GLOB SOURCES win_helpers_func_tests.cpp)
-find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS unit_test_framework system filesystem REQUIRED)
+find_package(Boost ${BOOST_MIN_VERSION} COMPONENTS unit_test_framework system filesystem thread REQUIRED)
  
 include_directories(
     ${Boost_INCLUDE_DIRS}
