@@ -3,9 +3,9 @@
 #include <winapi-helpers/win_special_path_helper.h>
 #include <winapi-helpers/win_ptrs.h>
 #include <winapi-helpers/win_errors.h>
-#include <winapi-helpers/win_registry_helper.h>
-#include <winapi-helpers/win_service_helper.h>
-#include <winapi-helpers/win_system_information.h>
+#include <winapi-helpers/registry_helper.h>
+#include <winapi-helpers/service_helper.h>
+#include <winapi-helpers/system_information.h>
 #include <winapi-helpers/win_user_information.h>
 #include <winapi-helpers/win_partition_information.h>
 
@@ -370,13 +370,13 @@ BOOST_AUTO_TEST_SUITE(WindowsPathFunctionalTests);
 
 BOOST_AUTO_TEST_CASE(TempDirectoryPathTest)
 {
-    std::wstring temp_path = helpers::NativePathHelpers::get_tempdir_path();
+    std::wstring temp_path = helpers::NativePathHelpers::get_tempdir_wpath();
     BOOST_CHECK_EQUAL(temp_path.empty(), false);
 }
 
 BOOST_AUTO_TEST_CASE(DesctopDirectoryPathTest)
 {
-    std::wstring desktop_path = helpers::NativePathHelpers::get_desktop_path();
+    std::wstring desktop_path = helpers::NativePathHelpers::get_desktop_wpath();
     BOOST_CHECK_EQUAL(desktop_path.empty(), false);
 }
 
@@ -387,7 +387,7 @@ BOOST_AUTO_TEST_CASE(HomedirPathTest)
         return;
     }
 
-    std::wstring roaming_path = helpers::NativePathHelpers::get_roaming_appdata_path();
+    std::wstring roaming_path = helpers::NativePathHelpers::get_roaming_appdata_wpath();
     BOOST_CHECK_EQUAL(roaming_path.empty(), false);
 }
 
@@ -398,7 +398,7 @@ BOOST_AUTO_TEST_CASE(UserAppdataPathTest)
         return;
     }
 
-    std::wstring appdata_path = helpers::NativePathHelpers::get_local_appdata_path();
+    std::wstring appdata_path = helpers::NativePathHelpers::get_local_appdata_wpath();
     BOOST_CHECK_EQUAL(appdata_path.empty(), false);
 }
 
@@ -409,7 +409,7 @@ BOOST_AUTO_TEST_CASE(RoamingAppdataPathTest)
         return;
     }
 
-    std::wstring home_path = helpers::NativePathHelpers::get_home_path();
+    std::wstring home_path = helpers::NativePathHelpers::get_home_wpath();
     BOOST_CHECK_EQUAL(home_path.empty(), false);
 }
 
